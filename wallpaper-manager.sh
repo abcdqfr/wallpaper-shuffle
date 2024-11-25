@@ -1,7 +1,7 @@
 #!/bin/bash
 pkill -f linux-wallpaperengine
 sleep 0.5
-SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle@custom/settings-schema.json"
+SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json"
 SCREEN=$(jq -r '.screen.default' "$SETTINGS_FILE")
 expand_tilde() {
     local path="$1"
