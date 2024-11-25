@@ -48,7 +48,7 @@ which allows you to set the following options:
 You can adjust these settings in the cinnamon applet config screen (click the gears), or 
 directly in the settings-schema.json located at:
 
-    ~/.local/share/cinnamon/applets/wallpaper-shuffle@custom/settings-schema.json
+    ~/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json
 
 Dependencies
 
