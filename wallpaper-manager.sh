@@ -3,6 +3,7 @@ pkill -f linux-wallpaperengine
 sleep 0.5
 SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json"
 SCREEN=$(jq -r '.screen.default' "$SETTINGS_FILE")
+DISABLE_MOUSE=$(jq -r '.disableMouse.default' "$SETTINGS_FILE")
 expand_tilde() {
     local path="$1"
     if [[ "$path" == "~/"* ]]; then
@@ -23,14 +24,33 @@ shuffle_queue() {
     echo 0 > "$CURRENT_INDEX_FILE"  # Reset to the first wallpaper
 }
 
+#update_schema() {
+#    jq ".currentWallpaper.default = \"$1\" |
+#        .previousWallpaper.default = \"$2\" |
+#        .currentIndex.default = \"$3\" |
+#        .queueLength.default = \"$4\" |
+#        .shuffleStatus.default = \"$5\"" "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+#}
+#log_event() {
+#    if [ "$(jq -r '.loggingEnabled.default' "$SETTINGS_FILE")" == "true" ]; then
+#        LOG_FILE=$(jq -r '.logFile.default' "$SETTINGS_FILE")
+#        echo "$(date): $1" >> "$LOG_FILE"
+#    fi
+#}
+
 load_wallpaper() {
     CURRENT_INDEX=$(cat "$CURRENT_INDEX_FILE")
     CURRENT_WALLPAPER=$(sed -n "$((CURRENT_INDEX + 1))p" "$QUEUE_FILE")
     if [ -n "$CURRENT_WALLPAPER" ]; then
         cd "$LINUX_WPE_PATH"
         ./linux-wallpaperengine --screen-root "$SCREEN" "$CURRENT_WALLPAPER"
+#        QUEUE_LENGTH=$(wc -l < "$QUEUE_FILE")
+#        SHUFFLE_STATUS=$([ -n "$TIMER_RUNNING" ] && echo "Active" || echo "Stopped")
+#        update_schema "$CURRENT_WALLPAPER" "$PREVIOUS_WALLPAPER" "$CURRENT_INDEX" "$QUEUE_LENGTH" "$SHUFFLE_STATUS"
+#        log_event "Loaded wallpaper: $CURRENT_WALLPAPER"
     else
         echo "No wallpapers left in the queue!"
+#        log_event "No wallpapers left in the queue!"
     fi
 }
 
