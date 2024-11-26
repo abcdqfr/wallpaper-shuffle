@@ -15,7 +15,7 @@
     "screen": {
         "type": "entry",
         "default": "DisplayPort-2",
-        "description": "Screen root display port for linux-wallpaperengine. Use xrandr in an x11 session  to find."
+        "description": "Screen root display port for linux-wallpaperengine. Use xrandr in an x11 session to find."
     },
     "wallpaperDir": {
     "type": "entry",
@@ -32,6 +32,47 @@
         "step": 1,
         "description": "Time interval for wallpaper shuffle",
         "tooltip": "Set the time interval (in minutes) for the wallpaper to change."
+    },
+    "disableMouse": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Disable mouse interactions with wallpapers",
+        "tooltip": "Prevent changing wallpapers with mouse actions."
     }
 }
-
+/*
+    "currentStatus": {
+        "type": "header",
+        "description": "Current Status of the Wallpaper Shuffle Applet"
+    },
+    "currentWallpaper": {
+        "type": "label",
+        "description": "Current Wallpaper Path/ID",
+        "tooltip": "The path or ID of the currently displayed wallpaper."
+    },
+    "previousWallpaper": {
+        "type": "label",
+        "description": "Previous Wallpaper Path/ID",
+        "tooltip": "The path or ID of the previously displayed wallpaper."
+    },
+    "queueLength": {
+        "type": "label",
+        "description": "Wallpaper Queue Length",
+        "tooltip": "Total number of wallpapers in the shuffle queue."
+    },
+    "currentIndex": {
+        "type": "label",
+        "description": "Current Index in Queue",
+        "tooltip": "The current position of the wallpaper in the shuffle queue."
+    },
+    "shuffleStatus": {
+        "type": "label",
+        "description": "Shuffle Timer Status",
+        "tooltip": "Indicates whether the shuffle timer is active or stopped."
+    },
+    "logFile": {
+        "type": "entry",
+        "default": "/var/log/wallpaper-shuffle.log",
+        "description": "Log File Path",
+        "tooltip": "Path to the file where logs will be saved."
+*/
