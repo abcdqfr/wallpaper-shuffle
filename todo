@@ -1,0 +1,116 @@
+
+"_disabled" {
+    "shuffleOrder": {
+        "type": "radiogroup",
+        "default": "random",
+        "description": "Shuffle order",
+        "options": {
+            "Random": "random",
+            "Sequential": "sequential"
+        },
+        "tooltip": "Choose whether the wallpapers should shuffle randomly or in sequential order."
+    },
+    "enableMultiMonitor": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Enable multi-monitor support",
+        "tooltip": "Enable this to use different wallpapers on multiple monitors."
+    },
+    "disableMouse": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Disable mouse interactions with wallpapers",
+        "tooltip": "Prevent changing wallpapers with mouse actions."
+    },
+    "displayNotifications": {
+        "type": "checkbox",
+        "default": true,
+        "description": "Display notifications when wallpaper changes",
+        "tooltip": "Enable this to show notifications each time the wallpaper changes."
+    },
+    "loggingEnabled": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Enable logging",
+        "tooltip": "Enable this to log wallpaper change events for troubleshooting or analytics."
+    },
+    "logFile": {
+        "type": "entry",
+        "default": "/var/log/wallpapershuffle.log",
+        "description": "Log file path",
+        "tooltip": "Specify the file where logs will be saved. Only available if logging is enabled.",
+        "dependency": "loggingEnabled"
+    },
+    "advancedSettings": {
+        "type": "header",
+        "description": "Advanced Settings"
+    },
+    "useTransitionEffect": {
+        "type": "checkbox",
+        "default": true,
+        "description": "Use transition effect when shuffling wallpapers",
+        "tooltip": "Enable smooth transitions between wallpapers."
+    },
+    "transitionDuration": {
+        "type": "spinbutton",
+        "default": 2,
+        "min": 1,
+        "max": 10,
+        "units": "seconds",
+        "step": 1,
+        "description": "Transition effect duration",
+        "dependency": "useTransitionEffect",
+        "tooltip": "Specify the duration (in seconds) of the transition effect between wallpapers."
+    },
+    "fadeEffect": {
+        "type": "checkbox",
+        "default": true,
+        "description": "Use fade effect for wallpaper transition",
+        "tooltip": "Enable this for a fade effect when changing wallpapers."
+    },
+    "customWallpaperScale": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Use custom scaling for wallpapers",
+        "tooltip": "Enable this to scale wallpapers according to your screen resolution."
+    },
+    "scalingOption": {
+        "type": "radiogroup",
+        "default": "fit",
+        "description": "Wallpaper scaling option",
+        "options": {
+            "Fit": "fit",
+            "Fill": "fill",
+            "Stretch": "stretch"
+        },
+        "dependency": "customWallpaperScale",
+        "tooltip": "Choose how wallpapers should be scaled to fit your screen."
+    },
+    "scheduleShuffle": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Enable wallpaper shuffle on schedule",
+        "tooltip": "Shuffle wallpapers only during specific hours or days."
+    },
+    "startTime": {
+        "type": "entry",
+        "default": "09:00",
+        "description": "Start time for scheduled shuffle",
+        "dependency": "scheduleShuffle",
+        "tooltip": "Specify the time to start wallpaper shuffle (24-hour format, e.g., 09:00)."
+    },
+    "endTime": {
+        "type": "entry",
+        "default": "18:00",
+        "description": "End time for scheduled shuffle",
+        "dependency": "scheduleShuffle",
+        "tooltip": "Specify the time to stop wallpaper shuffle (24-hour format, e.g., 18:00)."
+    },
+    "settingsInfo": {
+        "type": "button",
+        "description": "More Info",
+        "callback": "openHelpPage",
+        "tooltip": "Click to open the help page for detailed information."
+    }
+}
+
