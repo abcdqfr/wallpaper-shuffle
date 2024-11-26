@@ -2,6 +2,7 @@ const Applet = imports.ui.applet;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Settings = imports.ui.settings;
+const PopupMenu = imports.ui.popupMenu;
 const WALLPAPER_MANAGER_PATH = `${__dirname}/wallpaper-manager.sh`;
 class WallpaperShuffleApplet extends Applet.TextIconApplet {
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -10,9 +11,12 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         ["shuffleInterval", "volume", "screen", "fps", "scaling", "window-geometry", "disable-mouse"].forEach(k => this.settings.bind(k, k, this._applySettings));
         this.set_applet_icon_name("preferences-desktop-wallpaper");
         this.set_applet_tooltip("Wallpaper Shuffle Controls");
+        this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
+        this.menuManager.addMenu(this.menu);
         this.menu.addMenuItem(new Applet.MenuItem("Toggle Timer", null, () => this._toggleTimer()));
         ["next", "prev", "shuffle", "exit"].forEach(cmd => this._addMenuItem(cmd));
+        this.actor.connect("button-press-event", () => this.menu.toggle());
     }
     _addMenuItem(command) {
         this.menu.addMenuItem(new Applet.MenuItem(command.charAt(0).toUpperCase() + command.slice(1), null, () => Util.spawnCommandLine(`${WALLPAPER_MANAGER_PATH} ${command}`)));
