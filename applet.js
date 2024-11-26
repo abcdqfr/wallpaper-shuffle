@@ -1,5 +1,5 @@
+const { Gio } = imports.gi;
 const Applet = imports.ui.applet;
-const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
@@ -18,8 +18,35 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         ["next", "prev", "shuffle", "exit"].forEach(cmd => this._addMenuItem(cmd));
         this.actor.connect("button-press-event", () => this.menu.toggle());
     }
+
+    _runCommandAsync(command) {
+        let proc = Gio.Subprocess.new(
+            ['/bin/bash', '-c', command],
+            Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+        );
+
+        proc.communicate_async(null, null, (proc, res) => {
+            try {
+                let [ok, stdout, stderr] = proc.communicate_finish(res);
+                if (ok) {
+                    global.log(`Command output: ${stdout.toString().trim()}`);
+                } else {
+                    global.logError(`Command error: ${stderr.toString().trim()}`);
+                }
+            } catch (err) {
+                global.logError(`Command failed: ${err}`);
+            }
+        });
+    }
+
     _addMenuItem(command) {
-        this.menu.addMenuItem(new Applet.MenuItem(command.charAt(0).toUpperCase() + command.slice(1), null, () => Util.spawnCommandLine(`${WALLPAPER_MANAGER_PATH} ${command}`)));
+        this.menu.addMenuItem(
+            new Applet.MenuItem(
+                command.charAt(0).toUpperCase() + command.slice(1),
+                null,
+                () => this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} ${command}`)
+            )
+        );
     }
     _toggleTimer() {
         this.timer ? this._stopTimer() : this._startTimer();
@@ -31,7 +58,7 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                 this.remaining--;
                 this._updateTooltip();
             } else {
-                Util.spawnCommandLine(`${WALLPAPER_MANAGER_PATH} next`);
+                this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} next`);
                 this.remaining = this.shuffleInterval * 60;
                 this._updateTooltip("Timer reset");
             }
@@ -56,7 +83,7 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         if (this.disableMouse) {
             command += `--disable-mouse `;
         }
-        Util.spawnCommandLine(command);
+        this._runCommandAsync(command);
     }
     _updateTooltip(extra = "") {
         const formatTime = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
