@@ -9,6 +9,7 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         super(orientation, panelHeight, instanceId);
         this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
         ["shuffleInterval", "volume", "screen", "fps", "scaling", "window-geometry", "disable-mouse"].forEach(k => this.settings.bind(k, k, this._applySettings));
+        this.settings.bind("openHelpPage", null, this.openHelpPage.bind(this));
         this.set_applet_icon_name("preferences-desktop-wallpaper");
         this.set_applet_tooltip("Wallpaper Shuffle Controls");
         this.menuManager = new PopupMenu.PopupMenuManager(this);
@@ -24,7 +25,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             ['/bin/bash', '-c', command],
             Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
         );
-
         proc.communicate_async(null, null, (proc, res) => {
             try {
                 let [ok, stdout, stderr] = proc.communicate_finish(res);
@@ -38,16 +38,46 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             }
         });
     }
-
     _addMenuItem(command) {
-        this.menu.addMenuItem(
-            new Applet.MenuItem(
-                command.charAt(0).toUpperCase() + command.slice(1),
-                null,
-                () => this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} ${command}`)
-            )
-        );
+        this.menu.addMenuItem(new Applet.MenuItem(command.charAt(0).toUpperCase() + command.slice(1), null, () => this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} ${command}`)));
     }
+/* 
+    _updateStatus() {
+        const schemaPath = `${GLib.get_home_dir()}/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json`;
+        try {
+            const settings = JSON.parse(Cinnamon.get_file_contents_utf8_sync(schemaPath));
+            this.settings.setValue("currentWallpaper", settings.currentWallpaper.default || "Unknown");
+            this.settings.setValue("previousWallpaper", settings.previousWallpaper.default || "None");
+            this.settings.setValue("queueLength", settings.queueLength.default.toString() || "0");
+            this.settings.setValue("currentIndex", settings.currentIndex.default.toString() || "0");
+            this.settings.setValue("shuffleStatus", settings.shuffleStatus.default || "Stopped");
+        } catch (e) {
+            global.logError("Failed to read or parse status from settings-schema.json: " + e);
+        }
+    }
+    
+    Mainloop.timeout_add_seconds(5, () => {
+        this._updateStatus();
+        return true;
+    });
+
+    _readFile(filePath, defaultValue) {
+        try {
+            const fileContent = Cinnamon.get_file_contents_utf8_sync(filePath);
+            return fileContent ? fileContent.trim() : defaultValue;
+        } catch (e) {
+            return defaultValue;
+        }
+    }
+
+    _getQueueLength() {
+        try {
+            const queue = Cinnamon.get_file_contents_utf8_sync("/tmp/wallpaper_queue").split("\n");
+            return queue.filter(line => line.trim()).length;
+        } catch (e) {
+            return 0;
+        }
+    } */
     _toggleTimer() {
         this.timer ? this._stopTimer() : this._startTimer();
     }
@@ -72,6 +102,9 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             this.timer = null;
         }
         this._updateTooltip("Timer stopped");
+    }
+    openHelpPage() {
+        this._runCommandAsync(`xdg-open ${"https://github.com/abcdqfr/wallpaper-shuffle"}`);
     }
     _applySettings() {
         let command = `${WALLPAPER_MANAGER_PATH} `;
