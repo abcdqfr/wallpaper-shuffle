@@ -44,10 +44,10 @@ load_wallpaper() {
     if [ -n "$CURRENT_WALLPAPER" ]; then
         cd "$LINUX_WPE_PATH"
         ./linux-wallpaperengine --screen-root "$SCREEN" "$CURRENT_WALLPAPER"
-#        QUEUE_LENGTH=$(wc -l < "$QUEUE_FILE")
-#        SHUFFLE_STATUS=$([ -n "$TIMER_RUNNING" ] && echo "Active" || echo "Stopped")
-#        update_schema "$CURRENT_WALLPAPER" "$PREVIOUS_WALLPAPER" "$CURRENT_INDEX" "$QUEUE_LENGTH" "$SHUFFLE_STATUS"
-#        log_event "Loaded wallpaper: $CURRENT_WALLPAPER"
+        QUEUE_LENGTH=$(wc -l < "$QUEUE_FILE")
+        SHUFFLE_STATUS=$([ -n "$TIMER_RUNNING" ] && echo "Active" || echo "Stopped")
+        update_schema "$CURRENT_WALLPAPER" "$PREVIOUS_WALLPAPER" "$CURRENT_INDEX" "$QUEUE_LENGTH" "$SHUFFLE_STATUS"
+        log_event "Loaded wallpaper: $CURRENT_WALLPAPER"
     else
         echo "No wallpapers left in the queue!"
 #        log_event "No wallpapers left in the queue!"
