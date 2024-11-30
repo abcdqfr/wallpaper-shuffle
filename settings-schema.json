@@ -1,78 +1,86 @@
 {
-    "head": {
-        "type": "header",
-        "description": "Settings for Wallpaper Shuffle Applet"
-    },
-    "generalSettings": {
-        "type": "header",
-        "description": "General Settings"
-    },
-    "linuxWPEPath": {
-        "type": "entry",
-        "default": "~/linux-wallpaperengine/build",
-        "description": "Path to the linux-wallpaperengine executable"
-    },
-    "screen": {
-        "type": "entry",
-        "default": "DisplayPort-2",
-        "description": "Screen root display port for linux-wallpaperengine. Use xrandr in an x11 session to find."
-    },
-    "wallpaperDir": {
+  "head": {
+    "type": "header"
+  },
+  "generalSettings": {
+    "type": "header"
+  },
+  "linuxWPEPath": {
     "type": "entry",
-    "default": "~/.steam/debian-installation/steamapps/workshop/content/431960",
-    "description": "Path to the wallpaper directory",
-    "tooltip": "Specify the directory containing your wallpapers."
-    },
-    "shuffleInterval": {
-        "type": "spinbutton",
-        "default": 10,
-        "min": 1,
-        "max": 120,
-        "units": "minutes",
-        "step": 1,
-        "description": "Time interval for wallpaper shuffle",
-        "tooltip": "Set the time interval (in minutes) for the wallpaper to change."
-    },
-    "disableMouse": {
-        "type": "checkbox",
-        "default": false,
-        "description": "Disable mouse interactions with wallpapers",
-        "tooltip": "Prevent changing wallpapers with mouse actions."
-    }
+    "default": "~/linux-wallpaperengine/build"
+  },
+  "screen": {
+    "type": "entry",
+    "default": "DisplayPort-2"
+  },
+  "wallpaperDir": {
+    "type": "entry",
+    "default": "~/.steam/debian-installation/steamapps/workshop/content/431960"
+  },
+  "logFile": {
+    "type": "entry",
+    "default": "/var/log/wallpaper-shuffle.log"
+  },
+  "volumeLevel": {
+    "type": "spinbutton",
+    "default": 50,
+    "min": 0,
+    "max": 100,
+    "units": "%",
+    "step": 1
+  },
+  "shuffleInterval": {
+    "type": "spinbutton",
+    "default": 10,
+    "min": 1,
+    "max": 120,
+    "units": "minutes",
+    "step": 1
+  },
+  "disableMouse": {
+    "type": "checkbox",
+    "default": false
+  },
+  "currentStatus": {
+    "type": "header"
+  },
+  "currentWallpaper": {
+    "type": "entry",
+    "default": "",
+    "editable": false
+  },
+  "previousWallpaper": {
+    "type": "entry",
+    "default": "",
+    "editable": false
+  },
+  "queueLength": {
+    "type": "entry",
+    "default": 396,
+    "editable": false
+  },
+  "queue": {
+    "type": "array",
+    "default": [],
+    "editable": false
+  },
+  "currentIndex": {
+    "type": "label",
+    "default": 11,
+    "editable": false
+  },
+  "shuffleStatus": {
+    "type": "label",
+    "default": "Stopped",
+    "editable": false
+  },
+  "help": {
+    "type": "button",
+    "description": "Open GitHub Page",
+    "callback": "openHelp",
+    "tooltip": "https://github.com/abcdqfr/wallpaper-shuffle"
+  },
+  "wallpaperList": {
+    "default": []
+  }
 }
-/*
-    "currentStatus": {
-        "type": "header",
-        "description": "Current Status of the Wallpaper Shuffle Applet"
-    },
-    "currentWallpaper": {
-        "type": "label",
-        "description": "Current Wallpaper Path/ID",
-        "tooltip": "The path or ID of the currently displayed wallpaper."
-    },
-    "previousWallpaper": {
-        "type": "label",
-        "description": "Previous Wallpaper Path/ID",
-        "tooltip": "The path or ID of the previously displayed wallpaper."
-    },
-    "queueLength": {
-        "type": "label",
-        "description": "Wallpaper Queue Length",
-        "tooltip": "Total number of wallpapers in the shuffle queue."
-    },
-    "currentIndex": {
-        "type": "label",
-        "description": "Current Index in Queue",
-        "tooltip": "The current position of the wallpaper in the shuffle queue."
-    },
-    "shuffleStatus": {
-        "type": "label",
-        "description": "Shuffle Timer Status",
-        "tooltip": "Indicates whether the shuffle timer is active or stopped."
-    },
-    "logFile": {
-        "type": "entry",
-        "default": "/var/log/wallpaper-shuffle.log",
-        "description": "Log File Path",
-        "tooltip": "Path to the file where logs will be saved."
-*/
