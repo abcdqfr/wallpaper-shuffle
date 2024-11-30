@@ -26,7 +26,7 @@
     "default": 50,
     "min": 0,
     "max": 100,
-    "units": "%",
+    "units": "percent",
     "step": 1
   },
   "shuffleInterval": {
@@ -56,31 +56,12 @@
   },
   "queueLength": {
     "type": "entry",
-    "default": 396,
+    "default": 0,
     "editable": false
   },
   "queue": {
     "type": "array",
     "default": [],
     "editable": false
-  },
-  "currentIndex": {
-    "type": "label",
-    "default": 11,
-    "editable": false
-  },
-  "shuffleStatus": {
-    "type": "label",
-    "default": "Stopped",
-    "editable": false
-  },
-  "help": {
-    "type": "button",
-    "description": "Open GitHub Page",
-    "callback": "openHelp",
-    "tooltip": "https://github.com/abcdqfr/wallpaper-shuffle"
-  },
-  "wallpaperList": {
-    "default": []
   }
 }
