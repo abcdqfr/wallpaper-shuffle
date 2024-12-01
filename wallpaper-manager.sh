@@ -2,9 +2,12 @@
 pkill -f linux-wallpaperengine
 sleep 0.5
 SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json"
-SCREEN=$(jq -r '.screen.default' "$SETTINGS_FILE")
-DISABLE_MOUSE=$(jq -r '.disableMouse.default' "$SETTINGS_FILE")
-VOLUME=$(jq -r '.volumeLevel.default' "$SETTINGS_FILE")
+
+# Set default values if not found in settings
+SCREEN=$(jq -r '.screen.default // "DisplayPort-2"' "$SETTINGS_FILE")
+DISABLE_MOUSE=$(jq -r '.["disable-mouse"].default // false' "$SETTINGS_FILE")
+VOLUME=$(jq -r '.["volume-level"].default // 50' "$SETTINGS_FILE")
+
 expand_tilde() {
     local path="$1"
     if [[ "$path" == "~/"* ]]; then
@@ -13,65 +16,65 @@ expand_tilde() {
         echo "$path"
     fi
 }
-LINUX_WPE_PATH=$(jq -r '.linuxWPEPath.default' "$SETTINGS_FILE")
+
+LINUX_WPE_PATH=$(jq -r '."linux-wpe-path".default' "$SETTINGS_FILE")
 LINUX_WPE_PATH=$(expand_tilde "$LINUX_WPE_PATH")
-WALLPAPER_DIR=$(jq -r '.wallpaperDir.default' "$SETTINGS_FILE")
+WALLPAPER_DIR=$(jq -r '."wallpaper-dir".default' "$SETTINGS_FILE")
 WALLPAPER_DIR=$(expand_tilde "$WALLPAPER_DIR")
-#QUEUE=$(jq -r '.queue.default' "$SETTINGS_FILE")
-CURRENT_INDEX=$(jq -r '.currentIndex.default' "$SETTINGS_FILE")
 
-# Shuffle the wallpaper queue
-shuffle_queue() {
-    WALLPAPER_LIST=$(find "$WALLPAPER_DIR" -mindepth 1 -maxdepth 1 -type d | shuf | awk -F/ '{print $NF}' | jq -R -s 'split("\n") | map(select(. != ""))')
-    jq ".queue.default = $WALLPAPER_LIST" "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-    echo "Shuffle queue updated with last directory names."
-}
-
-# Load the current wallpaper and set the volume
-load_wallpaper() {
-    CURRENT_INDEX=$(jq -r '.currentIndex.default' "$SETTINGS_FILE")
-    WALLPAPER_LIST=$(jq -r '.queue.default[]' "$SETTINGS_FILE")
-    CURRENT_WALLPAPER=$(echo "$WALLPAPER_LIST" | sed -n "$((CURRENT_INDEX + 1))p")
-
-    if [ -n "$CURRENT_WALLPAPER" ]; then
-        cd "$LINUX_WPE_PATH"
-        ./linux-wallpaperengine --screen-root "$SCREEN" --volume "$VOLUME" "$CURRENT_WALLPAPER"
-
-        # Update status in the settings file
-        QUEUE_LENGTH=$(jq -r '.queue.default | length' "$SETTINGS_FILE")
-        SHUFFLE_STATUS=$([[ -n "$TIMER_RUNNING" ]] && echo "Active" || echo "Stopped")
-
-        jq --arg wallpaper "$CURRENT_WALLPAPER" --argjson index "$CURRENT_INDEX" \
-           --argjson length "$QUEUE_LENGTH" --arg status "$SHUFFLE_STATUS" \
-           '.currentWallpaper.default = $wallpaper |
-            .currentIndex.default = $index |
-            .queueLength.default = $length |
-            .shuffleStatus.default = $status' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-
-        echo "Loaded wallpaper: $CURRENT_WALLPAPER with volume: $VOLUME"
+load_queue() {
+    if [ ! -d "$WALLPAPER_DIR" ]; then
+        echo "Error: Wallpaper directory not found: $WALLPAPER_DIR"
+        exit 1
+    fi
+    
+    WALLPAPER_LIST=$(find "$WALLPAPER_DIR" -mindepth 1 -maxdepth 1 -type d | awk -F/ '{print $NF}' | jq -R -s 'split("\n") | map(select(. != ""))')
+    
+    if [ -n "$WALLPAPER_LIST" ]; then
+        echo "$WALLPAPER_LIST" | jq --arg list "$WALLPAPER_LIST" '.queue.default = ($list | fromjson)' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        echo "Shuffle queue updated with last directory names."
     else
-        echo "No wallpaper found at the current index."
+        echo "Error: No wallpapers found in directory: $WALLPAPER_DIR"
+        exit 1
     fi
 }
 
-# Load the next wallpaper
+load_wallpaper() {
+    CURRENT_INDEX=$(jq -r '."current-index".default' "$SETTINGS_FILE")
+    WALLPAPER_LIST=$(jq -r '.queue.default[]' "$SETTINGS_FILE")
+    CURRENT_WALLPAPER=$(echo "$WALLPAPER_LIST" | sed -n "$((CURRENT_INDEX + 1))p")
+    if [ -n "$CURRENT_WALLPAPER" ]; then
+        cd "$LINUX_WPE_PATH"
+        ./linux-wallpaperengine --screen-root "$SCREEN" --volume "$VOLUME" "$CURRENT_WALLPAPER" #add back disableMouse here
+
+        QUEUE_LENGTH=$(jq -r '.queue.default | length' "$SETTINGS_FILE")
+        SHUFFLE_STATUS=$([[ -n "$TIMER_RUNNING" ]] && echo "Active" || echo "Stopped")
+        jq --arg wallpaper "$CURRENT_WALLPAPER" --argjson index "$CURRENT_INDEX" \
+           --argjson length "$QUEUE_LENGTH" --arg status "$SHUFFLE_STATUS" \
+           '."current-wallpaper".default = $wallpaper |
+            ."current-index".default = $index |
+            ."queue-length".default = $length |
+            ."shuffle-status".default = $status' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+
+        echo "Loaded wallpaper: $CURRENT_WALLPAPER with volume: $VOLUME"
+    fi
+}
+
 next_wallpaper() {
+    #add logic to set prev wallpaper to current wallpaper
     TOTAL_WALLPAPERS=$(jq -r '.queue.default | length' "$SETTINGS_FILE")
     if [ "$CURRENT_INDEX" -lt $((TOTAL_WALLPAPERS - 1)) ]; then
-        jq '.currentIndex.default += 1' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        jq '."current-index".default += 1' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
     else
-        jq '.currentIndex.default = 0' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        jq '."current-index".default = 0' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
     fi
     load_wallpaper
 }
 
-# Load the previous wallpaper
 prev_wallpaper() {
     if [ "$CURRENT_INDEX" -gt 0 ]; then
-        jq '.currentIndex.default -= 1' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        jq '."current-index".default -= 1' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
         load_wallpaper
-    else
-        echo "Already at the first wallpaper."
     fi
 }
 
@@ -83,9 +86,9 @@ exit_wallpaper_manager() {
 
 case "$1" in
     load) load_wallpaper ;;
-    shuffle) shuffle_queue ;;
+    queue) load_queue ;;
     next) next_wallpaper ;;
     prev) prev_wallpaper ;;
     exit) exit_wallpaper_manager ;;
-    *) echo "Usage: $0 {shuffle|load|next|prev|exit}" ;;
+    *) echo "Usage: $0 {queue|load|next|prev|exit}" ;; #nothing to add here? volume, screen, fps, scaling, window-geometry, disable-mouse, no?
 esac

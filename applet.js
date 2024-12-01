@@ -8,18 +8,16 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     constructor(metadata, orientation, panelHeight, instanceId) {
         super(orientation, panelHeight, instanceId);
         this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
-        ["shuffleInterval", "volume", "screen", "fps", "scaling", "window-geometry", "disable-mouse"].forEach(k => this.settings.bind(k, k, this._applySettings));
-        this.settings.bind("openHelpPage", null, this.openHelpPage.bind(this));
+        ["shuffle-interval", "volume-level", "screen", "linux-wpe-path", "wallpaper-dir", "disable-mouse"].forEach(k => this.settings.bind(k, k, this._applySettings));
         this.set_applet_icon_name("preferences-desktop-wallpaper");
         this.set_applet_tooltip("Wallpaper Shuffle Controls");
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
         this.menu.addMenuItem(new Applet.MenuItem("Toggle Timer", null, () => this._toggleTimer()));
-        ["next", "prev", "shuffle", "exit"].forEach(cmd => this._addMenuItem(cmd));
+        ["queue", "next", "prev", "exit"].forEach(cmd => this._addMenuItem(cmd));
         this.actor.connect("button-press-event", () => this.menu.toggle());
     }
-
     _runCommandAsync(command) {
         let proc = Gio.Subprocess.new(
             ['/bin/bash', '-c', command],
@@ -41,43 +39,37 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     _addMenuItem(command) {
         this.menu.addMenuItem(new Applet.MenuItem(command.charAt(0).toUpperCase() + command.slice(1), null, () => this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} ${command}`)));
     }
-/* 
     _updateStatus() {
         const schemaPath = `${GLib.get_home_dir()}/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json`;
-        try {
-            const settings = JSON.parse(Cinnamon.get_file_contents_utf8_sync(schemaPath));
-            this.settings.setValue("currentWallpaper", settings.currentWallpaper.default || "Unknown");
-            this.settings.setValue("previousWallpaper", settings.previousWallpaper.default || "None");
-            this.settings.setValue("queueLength", settings.queueLength.default.toString() || "0");
-            this.settings.setValue("currentIndex", settings.currentIndex.default.toString() || "0");
-            this.settings.setValue("shuffleStatus", settings.shuffleStatus.default || "Stopped");
-        } catch (e) {
-            global.logError("Failed to read or parse status from settings-schema.json: " + e);
-        }
-    }
-    
-    Mainloop.timeout_add_seconds(5, () => {
-        this._updateStatus();
-        return true;
-    });
+        const file = Gio.file_new_for_path(schemaPath);
+        
+        file.load_contents_async(null, (aFile, aResponse) => {
+            let success, contents, tag;
 
-    _readFile(filePath, defaultValue) {
-        try {
-            const fileContent = Cinnamon.get_file_contents_utf8_sync(filePath);
-            return fileContent ? fileContent.trim() : defaultValue;
-        } catch (e) {
-            return defaultValue;
-        }
-    }
+            try {
+                [success, contents, tag] = aFile.load_contents_finish(aResponse);
+            } catch (err) {
+                global.logError("Failed to read settings-schema.json: " + err.message);
+                return;
+            }
 
-    _getQueueLength() {
-        try {
-            const queue = Cinnamon.get_file_contents_utf8_sync("/tmp/wallpaper_queue").split("\n");
-            return queue.filter(line => line.trim()).length;
-        } catch (e) {
-            return 0;
-        }
-    } */
+            if (!success) {
+                global.logError("Error reading settings-schema.json");
+                return;
+            }
+
+            try {
+                const settings = JSON.parse(contents.toString());
+                this.settings.setValue("current-wallpaper", settings["current-wallpaper"].default || "Unknown");
+                this.settings.setValue("previous-wallpaper", settings["previous-wallpaper"].default || "None");
+                this.settings.setValue("queue-length", settings["queue-length"].default.toString() || "0");
+                this.settings.setValue("current-index", settings["current-index"].default.toString() || "0");
+                this.settings.setValue("shuffle-status", settings["shuffle-status"].default || "Stopped");
+            } catch (err) {
+                global.logError("Failed to parse settings-schema.json: " + err.message);
+            }
+        });
+    }
     _toggleTimer() {
         this.timer ? this._stopTimer() : this._startTimer();
     }
@@ -103,16 +95,10 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         }
         this._updateTooltip("Timer stopped");
     }
-    openHelpPage() {
-        this._runCommandAsync(`xdg-open ${"https://github.com/abcdqfr/wallpaper-shuffle"}`);
-    }
     _applySettings() {
         let command = `${WALLPAPER_MANAGER_PATH} `;
-        command += `--volume ${this.volume} `;
+        command += `--volume ${this.volumeLevel} `;
         command += `--screen-root ${this.screen} `;
-        command += `--fps ${this.fps} `;
-        command += `--scaling ${this.scaling} `;
-        command += `--window ${this.window_geometry} `;
         if (this.disableMouse) {
             command += `--disable-mouse `;
         }
@@ -127,6 +113,9 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     }
     on_applet_clicked() {
         this.menu.toggle();
+    }
+    on_applet_about_clicked() {
+        this._runCommandAsync(`xdg-open https://github.com/abcdqfr/wallpaper-shuffle`);
     }
     on_panel_height_changed() {
         this.set_applet_icon_symbolic_name("preferences-desktop-wallpaper");

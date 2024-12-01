@@ -2,10 +2,11 @@
   "head": {
     "type": "header"
   },
-  "generalSettings": {
+  "general-settings": {
+    "title": "General Settings",
     "type": "header"
   },
-  "linuxWPEPath": {
+  "linux-wpe-path": {
     "type": "entry",
     "default": "~/linux-wallpaperengine/build"
   },
@@ -13,23 +14,23 @@
     "type": "entry",
     "default": "DisplayPort-2"
   },
-  "wallpaperDir": {
+  "wallpaper-dir": {
     "type": "entry",
     "default": "~/.steam/debian-installation/steamapps/workshop/content/431960"
   },
-  "logFile": {
+  "log-file": {
     "type": "entry",
     "default": "/var/log/wallpaper-shuffle.log"
   },
-  "volumeLevel": {
-    "type": "spinbutton",
+  "volume-level": {
+    "type": "slider",
     "default": 50,
     "min": 0,
     "max": 100,
     "units": "percent",
     "step": 1
   },
-  "shuffleInterval": {
+  "shuffle-interval": {
     "type": "spinbutton",
     "default": 10,
     "min": 1,
@@ -37,31 +38,33 @@
     "units": "minutes",
     "step": 1
   },
-  "disableMouse": {
+  "disable-mouse": {
     "type": "checkbox",
     "default": false
   },
-  "currentStatus": {
+  "current-status": {
     "type": "header"
   },
-  "currentWallpaper": {
+  "current-wallpaper": {
     "type": "entry",
-    "default": "",
-    "editable": false
+    "default": ""
   },
-  "previousWallpaper": {
+  "previous-wallpaper": {
     "type": "entry",
-    "default": "",
-    "editable": false
+    "default": ""
   },
-  "queueLength": {
+  "queue-length": {
     "type": "entry",
-    "default": 0,
-    "editable": false
+    "default": 0
   },
   "queue": {
-    "type": "array",
-    "default": [],
-    "editable": false
+    "type": "list",
+    "default": []
+  },
+  "current-index": {
+    "default": 0
+  },
+  "shuffle-status": {
+    "default": "Stopped"
   }
 }
