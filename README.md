@@ -24,7 +24,7 @@ To install Wallpaper Shuffle, follow these steps:
 
 cd ~/.local/share/cinnamon/applets/
 
-git clone https://github.com/abcdqfr/wallpaper-shuffle.git
+git clone https://github.com/abcdqfr/wallpaper-shuffle.git wallpaper-shuffle@abcdqfr
 
 
 Restart Cinnamon: After cloning the repository, restart Cinnamon to load the applet. You can do this by:

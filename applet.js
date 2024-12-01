@@ -4,19 +4,57 @@ const Mainloop = imports.mainloop;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const WALLPAPER_MANAGER_PATH = `${__dirname}/wallpaper-manager.sh`;
+
 class WallpaperShuffleApplet extends Applet.TextIconApplet {
     constructor(metadata, orientation, panelHeight, instanceId) {
+        global.log('WallpaperShuffleApplet: Constructor started');
+        global.log(`metadata: ${JSON.stringify(metadata)}`);
+        global.log(`instanceId: ${instanceId}`);
+        
         super(orientation, panelHeight, instanceId);
-        this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
-        ["shuffle-interval", "volume-level", "screen", "linux-wpe-path", "wallpaper-dir", "disable-mouse"].forEach(k => this.settings.bind(k, k, this._applySettings));
+        
+        try {
+            this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
+            global.log('Settings instance created successfully');
+            
+            this._bindSettings();
+        } catch (e) {
+            global.logError('Failed to initialize applet settings: ' + e.message);
+        }
+        
         this.set_applet_icon_name("preferences-desktop-wallpaper");
         this.set_applet_tooltip("Wallpaper Shuffle Controls");
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
         this.menu.addMenuItem(new Applet.MenuItem("Toggle Timer", null, () => this._toggleTimer()));
-        ["queue", "next", "prev", "exit"].forEach(cmd => this._addMenuItem(cmd));
+        ["queue", "next", "prev", "random", "exit"].forEach(cmd => this._addMenuItem(cmd));
         this.actor.connect("button-press-event", () => this.menu.toggle());
+    }
+    _bindSettings() {
+        const properties = [
+            "shuffleInterval",
+            "volumeLevel",
+            "screenRoot",
+            "linuxWpePath",
+            "wallpaperDir",
+            "disableMouse"
+        ];
+
+        for (const prop of properties) {
+            try {
+                this.settings.bindProperty(
+                    Settings.BindingDirection.IN,
+                    prop,
+                    prop,
+                    () => this._on_settings_changed(),
+                    null
+                );
+                global.log(`${prop} binding successful`);
+            } catch (e) {
+                global.logError(`Failed to bind ${prop}: ${e.message}`);
+            }
+        }
     }
     _runCommandAsync(command) {
         let proc = Gio.Subprocess.new(
@@ -60,11 +98,11 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
 
             try {
                 const settings = JSON.parse(contents.toString());
-                this.settings.setValue("current-wallpaper", settings["current-wallpaper"].default || "Unknown");
-                this.settings.setValue("previous-wallpaper", settings["previous-wallpaper"].default || "None");
-                this.settings.setValue("queue-length", settings["queue-length"].default.toString() || "0");
-                this.settings.setValue("current-index", settings["current-index"].default.toString() || "0");
-                this.settings.setValue("shuffle-status", settings["shuffle-status"].default || "Stopped");
+                this.settings.setValue("currentWallpaper", settings["currentWallpaper"].default || "Unknown");
+                this.settings.setValue("previousWallpaper", settings["previousWallpaper"].default || "None");
+                this.settings.setValue("queueLength", settings["queueLength"].default.toString() || "0");
+                this.settings.setValue("currentIndex", settings["currentIndex"].default.toString() || "0");
+                this.settings.setValue("shuffleStatus", settings["shuffleStatus"].default || "Stopped");
             } catch (err) {
                 global.logError("Failed to parse settings-schema.json: " + err.message);
             }
@@ -98,9 +136,9 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     _applySettings() {
         let command = `${WALLPAPER_MANAGER_PATH} `;
         command += `--volume ${this.volumeLevel} `;
-        command += `--screen-root ${this.screen} `;
+        command += `--screenRoot ${this.screenRoot} `;
         if (this.disableMouse) {
-            command += `--disable-mouse `;
+            command += `--disableMouse `;
         }
         this._runCommandAsync(command);
     }
@@ -119,6 +157,29 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     }
     on_panel_height_changed() {
         this.set_applet_icon_symbolic_name("preferences-desktop-wallpaper");
+    }
+    on_applet_removed_from_panel() {
+        if (this.timer) {
+            this._stop_timer();
+        }
+        this.settings.finalize();
+    }
+    on_applet_config_changed() {
+        global.log('Wallpaper Shuffle: Config changed called');
+        this._on_settings_changed();
+    }
+    on_applet_about_to_be_clicked() {
+        global.log('Wallpaper Shuffle: About to be clicked');
+        this._run_command_async(`xdg-open https://github.com/abcdqfr/wallpaper-shuffle`);
+    }
+    _on_settings_changed() {
+        global.log('Settings changed handler called');
+        global.log(`Current shuffle interval: ${this.shuffleInterval}`);
+        global.log(`Current volume level: ${this.volumeLevel}`);
+        global.log(`Current screen: ${this.screenRoot}`);
+        
+        this._applySettings();
+        this._updateTooltip();
     }
 }
 function main(metadata, orientation, panelHeight, instanceId) {

@@ -1,70 +1,97 @@
 {
   "head": {
-    "type": "header"
+    "type": "header",
+    "description": "Wallpaper Shuffle Settings"
   },
-  "general-settings": {
+  "generalSettings": {
     "title": "General Settings",
-    "type": "header"
+    "type": "header",
+    "description": "Basic configuration options"
   },
-  "linux-wpe-path": {
+  "linuxWpePath": {
     "type": "entry",
-    "default": "~/linux-wallpaperengine/build"
+    "default": "~/linux-wallpaperengine/build",
+    "description": "Linux Wallpaper Engine Path",
+    "tooltip": "Path to the linux-wallpaperengine build directory"
   },
-  "screen": {
+  "screenRoot": {
     "type": "entry",
-    "default": "DisplayPort-2"
+    "default": "DisplayPort-2",
+    "description": "Screen Display Output",
+    "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)"
   },
-  "wallpaper-dir": {
+  "wallpaperDir": {
+    "type": "filechooser",
+    "default": "~/.steam/debian-installation/steamapps/workshop/content/431960",
+    "description": "Wallpaper directory",
+    "select-dir": true
+  },
+  "logFile": {
     "type": "entry",
-    "default": "~/.steam/debian-installation/steamapps/workshop/content/431960"
+    "default": "/var/log/wallpaper-shuffle.log",
+    "description": "Log file location"
   },
-  "log-file": {
-    "type": "entry",
-    "default": "/var/log/wallpaper-shuffle.log"
-  },
-  "volume-level": {
-    "type": "slider",
+  "volumeLevel": {
+    "type": "scale",
     "default": 50,
     "min": 0,
     "max": 100,
-    "units": "percent",
-    "step": 1
+    "step": 1,
+    "description": "Volume level"
   },
-  "shuffle-interval": {
+  "shuffleInterval": {
     "type": "spinbutton",
     "default": 10,
     "min": 1,
-    "max": 120,
+    "max": 1440,
+    "step": 1,
     "units": "minutes",
-    "step": 1
+    "description": "Shuffle interval"
   },
-  "disable-mouse": {
-    "type": "checkbox",
-    "default": false
+  "disableMouse": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable mouse interaction"
   },
-  "current-status": {
-    "type": "header"
+  "currentStatus": {
+    "type": "header",
+    "description": "Current Status"
   },
-  "current-wallpaper": {
-    "type": "entry",
-    "default": ""
+  "currentIndex": {
+    "type": "generic",
+    "default": 213,
+    "description": "Current index"
   },
-  "previous-wallpaper": {
-    "type": "entry",
-    "default": ""
+  "currentWallpaper": {
+    "type": "generic",
+    "default": "",
+    "description": "Current wallpaper"
   },
-  "queue-length": {
-    "type": "entry",
-    "default": 0
+  "previousWallpaper": {
+    "type": "generic",
+    "default": "",
+    "description": "Previous wallpaper"
+  },
+  "queueLength": {
+    "type": "generic",
+    "default": 0,
+    "description": "Queue length"
+  },
+  "shuffleStatus": {
+    "type": "generic",
+    "default": "Stopped",
+    "description": "Shuffle status"
   },
   "queue": {
     "type": "list",
-    "default": []
-  },
-  "current-index": {
-    "default": 0
-  },
-  "shuffle-status": {
-    "default": "Stopped"
+    "columns": [
+      {
+        "id": "value",
+        "title": "Wallpaper ID",
+        "type": "string"
+      }
+    ],
+    "default": [],
+    "description": "Shuffle queue"
   }
 }
