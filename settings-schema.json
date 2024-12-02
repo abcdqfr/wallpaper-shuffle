@@ -21,11 +21,6 @@
     "description": "Wallpaper directory",
     "select-dir": true
   },
-  "muteAudio": {
-    "type": "switch",
-    "default": false,
-    "description": "Mute audio"
-  },
   "logFile": {
     "type": "filechooser",
     "default": "/var/log/wallpaper-shuffle.log",
@@ -38,6 +33,15 @@
     "description": "Screen Display Output",
     "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)"
   },
+  "shuffleInterval": {
+  "type": "spinbutton",
+  "default": 10,
+  "min": 1,
+  "max": 1440,
+  "step": 1,
+  "units": "minutes",
+  "description": "Shuffle interval"
+  },
   "volumeLevel": {
     "type": "scale",
     "default": 50,
@@ -46,14 +50,11 @@
     "step": 1,
     "description": "Volume level (0-100)"
   },
-  "shuffleInterval": {
-    "type": "spinbutton",
-    "default": 10,
-    "min": 1,
-    "max": 1440,
-    "step": 1,
-    "units": "minutes",
-    "description": "Shuffle interval"
+
+  "muteAudio": {
+    "type": "switch",
+    "default": false,
+    "description": "Mute audio"
   },
   "disableMouse": {
     "type": "switch",

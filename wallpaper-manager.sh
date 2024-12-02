@@ -17,12 +17,20 @@ LINUX_WPE_PATH=$(expand_path "$(jq -r '.linuxWpePath.value' "$INSTANCE_FILE" 2>/
 # Initialize instance file if it doesn't exist
 if [ ! -s "$INSTANCE_FILE" ]; then
     mkdir -p "$(dirname "$INSTANCE_FILE")"
-    jq '. + {
-        "queue": {"value": []},
-        "currentIndex": {"value": 0},
-        "wallpaperDir": {"value": "~/.steam/debian-installation/steamapps/workshop/content/431960"},
-        "linuxWpePath": {"value": "~/linux-wallpaperengine/build"}
-    }' "$SCHEMA_FILE" > "$INSTANCE_FILE"
+    
+    # Create instance file by converting schema defaults to values
+    jq '
+    def process_value(v):
+        if v.type == "header" then
+            v
+        else
+            v + { value: v.default }
+        end;
+
+    with_entries(
+        select(.key != "head") |
+        .value = process_value(.value)
+    )' "$SCHEMA_FILE" > "$INSTANCE_FILE"
 fi
 load_queue() {
     [ ! -d "$WALLPAPER_DIR" ] && echo "Error: Wallpaper directory not found" && return 1
@@ -59,11 +67,6 @@ CLAMPING_MODE=$(jq -r '.clampingMode.value' "$INSTANCE_FILE" 2>/dev/null || jq -
 
 
 load_wallpaper() {
-    # Kill any remaining processes and wait
-    pkill -f linux-wallpaperengine &
-    KILL_PID=$!
-    wait $KILL_PID
-    sleep 1
     
     INDEX=$(jq -r '.currentIndex.value // .currentIndex.default // 0' "$INSTANCE_FILE")
     echo "Debug: Trying to access index $INDEX"

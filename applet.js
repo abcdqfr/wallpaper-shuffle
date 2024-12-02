@@ -21,8 +21,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             
             if (!this.wallpaperDir) {
                 global.logError('No wallpaper directory configured');
-                // Maybe set a default?
-                // this.wallpaperDir = GLib.get_home_dir() + '/Pictures';
             }
             
             this._bindSettings();
