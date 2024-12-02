@@ -181,6 +181,6 @@
     "description": "Wallpaper Queue",
     "tooltip": "List of Steam Workshop IDs in shuffle queue",
     "default": "",
-    "value": [] 
+    "value": ""
   }
 }

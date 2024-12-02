@@ -34,7 +34,6 @@ SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle@abcdqfr/set
 get_setting() {
     [ -f "$SETTINGS_FILE" ] && value=$(jq -r ".$1.value // .$1.default // \"$2\"" "$SETTINGS_FILE") || value="$2"
     if [ "$1" = "queue" ]; then
-        # Convert comma-separated list to JSON array
         echo "[\"${value//,/\",\"}\"]"
     else
         [ "$value" = "null" ] && echo "$2" || echo "$value"
@@ -43,28 +42,17 @@ get_setting() {
 
 set_setting() {
     [ ! -f "$SETTINGS_FILE" ] && echo "{}" > "$SETTINGS_FILE"
-    local temp_file=$(mktemp)
-    
     jq --arg key "$1" --arg value "$2" \
-        'if has($key) then
-            if .[$key] | type == "object" then
-                .[$key].value = $value
-            else
-                .[$key] = {"type": "generic", "value": $value}
-            end
-         else
-            .[$key] = {"type": "generic", "value": $value}
-         end' "$SETTINGS_FILE" > "$temp_file"
-    
-    mv "$temp_file" "$SETTINGS_FILE"
+        'if has($key) then if .[$key] | type == "object" then .[$key].value = $value 
+         else .[$key] = {"type": "generic", "value": $value} end
+         else .[$key] = {"type": "generic", "value": $value} end' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" \
+    && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 }
 
 build_queue() {
     [ ! -d "$1" ] && return 1
-    local raw_list=$(find "$1" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
-    local wallpapers=$(echo "$raw_list" | tr '\n' ',' | sed 's/,$//')
-    [ "$wallpapers" = "" ] && return 1
-    set_setting "queue" "$wallpapers"
+    local wallpapers=$(find "$1" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | tr '\n' ',' | sed 's/,$//')
+    [ -n "$wallpapers" ] && set_setting "queue" "$wallpapers"
 }
 
 load_wallpaper() {
@@ -91,9 +79,7 @@ load_wallpaper() {
     fi
     
     SCREEN=$(get_setting "screenRoot" "")
-    if [ -z "$SCREEN" ] || [ "$SCREEN" = "null" ]; then
-        SCREEN=$(xrandr --listmonitors | grep '+' | head -n1 | awk '{print $NF}')
-    fi
+    [ -z "$SCREEN" ] || [ "$SCREEN" = "null" ] && SCREEN=$(xrandr --listmonitors | grep '+' | head -n1 | awk '{print $NF}')
     CMD+=" --screen-root $SCREEN"
     
     SCALING=$(get_setting "scalingMode" "default")
@@ -137,28 +123,16 @@ case "$1" in
         
         set_setting "currentIndex" "$NEW_INDEX"
         load_wallpaper ;;
-    random)
-        TOTAL=$(get_setting "queue" | jq '. | length')
-        [ "$TOTAL" -gt 0 ] && set_setting "currentIndex" "$((RANDOM % TOTAL))" && load_wallpaper ;;
+    random) TOTAL=$(get_setting "queue" | jq '. | length') && [ "$TOTAL" -gt 0 ] && set_setting "currentIndex" "$((RANDOM % TOTAL))" && load_wallpaper ;;
     settings)
         kill_wpe
         case "$2" in
-            volumeLevel)
-                [[ "$3" =~ ^[0-9]+\.?[0-9]*$ ]] && VOL=$(printf "%.0f" "$3") && \
-                [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] && set_setting "volumeLevel" "$VOL" && load_wallpaper ;;
-            maxFps)
-                [[ "$3" =~ ^[0-9]+$ ]] && [ "$3" -ge 1 ] && [ "$3" -le 240 ] && \
-                set_setting "maxFps" "$3" && load_wallpaper ;;
-            muteAudio|disableMouse|noAutomute|noAudioProcessing|noFullscreenPause)
-                VALUE=$(echo "$3" | tr '[:upper:]' '[:lower:]')
-                [ "$VALUE" = "true" ] || [ "$VALUE" = "1" ] && BOOL="true" || BOOL="false"
-                set_setting "$2" "$BOOL" && load_wallpaper ;;
-            scalingMode)
-                [[ "$3" =~ ^(default|stretch|fit|fill)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
-            clampingMode)
-                [[ "$3" =~ ^(clamp|border|repeat)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
-            *) 
-                [ -n "$3" ] && set_setting "$2" "$3" && load_wallpaper ;;
+            volumeLevel) [[ "$3" =~ ^[0-9]+\.?[0-9]*$ ]] && VOL=$(printf "%.0f" "$3") && [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] && set_setting "$2" "$VOL" && load_wallpaper ;;
+            maxFps) [[ "$3" =~ ^[0-9]+$ ]] && [ "$3" -ge 1 ] && [ "$3" -le 240 ] && set_setting "$2" "$3" && load_wallpaper ;;
+            muteAudio|disableMouse|noAutomute|noAudioProcessing|noFullscreenPause) set_setting "$2" "$(echo "$3" | tr '[:upper:]' '[:lower:]' | grep -E '^(true|1)$' >/dev/null && echo true || echo false)" && load_wallpaper ;;
+            scalingMode) [[ "$3" =~ ^(default|stretch|fit|fill)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
+            clampingMode) [[ "$3" =~ ^(clamp|border|repeat)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
+            *) [ -n "$3" ] && set_setting "$2" "$3" && load_wallpaper ;;
         esac ;;
     exit) kill_wpe; cinnamon --replace & ;;
     help|--help|-h) help_settings ;;
