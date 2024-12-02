@@ -116,14 +116,58 @@
       "Clamp": "clamp",
       "Border": "border",
       "Repeat": "repeat"
-    },
-    "queue": {
-      "type": "list",
-      "description": "Wallpaper queue",
-      "columns": [
-        {"id": "id", "title": "Wallpaper ID", "type": "string"}
-      ],
-      "default": []
     }
+  },
+  "queue": {
+    "type": "list",
+    "description": "Wallpaper queue",
+    "columns": [
+      {"id": "id", "title": "Wallpaper ID", "type": "string"}
+    ],
+    "default": []
+  },
+  "performanceSettings": {
+    "type": "header",
+    "description": "Performance Settings"
+  },
+  "maxFps": {
+    "type": "spinbutton",
+    "default": 60,
+    "min": 1,
+    "max": 240,
+    "step": 1,
+    "description": "Maximum FPS",
+    "tooltip": "Limit FPS to reduce battery usage"
+  },
+  "noAutomute": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable auto-mute",
+    "tooltip": "Prevent wallpaper from auto-muting when other apps play sound"
+  },
+  "noAudioProcessing": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable audio processing",
+    "tooltip": "Disable audio processing for backgrounds"
+  },
+  "noFullscreenPause": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable fullscreen pause",
+    "tooltip": "Prevent wallpaper from pausing when apps go fullscreen"
+  },
+  "windowMode": {
+    "type": "entry",
+    "default": "",
+    "description": "Window geometry (XxYxWxH)",
+    "tooltip": "Run in window mode with specific geometry (e.g., 0x0x1920x1080)"
+  },
+  "assetsDir": {
+    "type": "filechooser",
+    "default": "",
+    "description": "Custom assets directory",
+    "select-dir": true,
+    "tooltip": "Custom directory for wallpaper assets"
   }
 }
