@@ -3,7 +3,7 @@
     "name": "Wallpaper Shuffle",
     "description": "A Cinnamon applet to manage and shuffle wallpapers using Linux Wallpaper Engine. Includes shuffle, next, and previous functionality, with configurable paths and display settings.",
     "icon": "preferences-desktop-wallpaper",
-    "settings-schema": "org.cinnamon.applets.wallpaper-shuffle",
+    "settings-schema": "wallpaper-shuffle@abcdqfr",
     "max-instances": 1,
     "version": "1.0.0",
     "author": "abcdqfr",

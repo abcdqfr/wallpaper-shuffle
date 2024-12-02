@@ -9,16 +9,11 @@
     "description": "Basic configuration options"
   },
   "linuxWpePath": {
-    "type": "entry",
+    "type": "filechooser",
     "default": "~/linux-wallpaperengine/build",
     "description": "Linux Wallpaper Engine Path",
-    "tooltip": "Path to the linux-wallpaperengine build directory"
-  },
-  "screenRoot": {
-    "type": "entry",
-    "default": "DisplayPort-2",
-    "description": "Screen Display Output",
-    "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)"
+    "tooltip": "Path to the linux-wallpaperengine build directory",
+    "select-dir": true
   },
   "wallpaperDir": {
     "type": "filechooser",
@@ -26,10 +21,22 @@
     "description": "Wallpaper directory",
     "select-dir": true
   },
+  "muteAudio": {
+    "type": "switch",
+    "default": false,
+    "description": "Mute audio"
+  },
   "logFile": {
-    "type": "entry",
+    "type": "filechooser",
     "default": "/var/log/wallpaper-shuffle.log",
-    "description": "Log file location"
+    "description": "Log file location",
+    "select-dir": true
+  },
+  "screenRoot": {
+    "type": "entry",
+    "default": "DisplayPort-2",
+    "description": "Screen Display Output",
+    "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)"
   },
   "volumeLevel": {
     "type": "scale",
@@ -37,7 +44,7 @@
     "min": 0,
     "max": 100,
     "step": 1,
-    "description": "Volume level"
+    "description": "Volume level (0-100)"
   },
   "shuffleInterval": {
     "type": "spinbutton",
@@ -59,8 +66,9 @@
   },
   "currentIndex": {
     "type": "generic",
-    "default": 213,
-    "description": "Current index"
+    "default": 246,
+    "description": "Current index",
+    "value": 330
   },
   "currentWallpaper": {
     "type": "generic",
@@ -74,7 +82,7 @@
   },
   "queueLength": {
     "type": "generic",
-    "default": 0,
+    "default": 396,
     "description": "Queue length"
   },
   "shuffleStatus": {
@@ -82,16 +90,39 @@
     "default": "Stopped",
     "description": "Shuffle status"
   },
-  "queue": {
-    "type": "list",
-    "columns": [
-      {
-        "id": "value",
-        "title": "Wallpaper ID",
-        "type": "string"
-      }
-    ],
-    "default": [],
-    "description": "Shuffle queue"
+  "displaySettings": {
+    "type": "header",
+    "description": "Display Settings"
+  },
+  "scalingMode": {
+    "type": "combobox",
+    "default": "default",
+    "description": "Scaling Mode",
+    "tooltip": "How the wallpaper should be scaled to fit the screen",
+    "options": {
+      "Default": "default",
+      "Stretch": "stretch",
+      "Fit": "fit",
+      "Fill": "fill"
+    }
+  },
+  "clampingMode": {
+    "type": "combobox",
+    "default": "clamp",
+    "description": "Clamping Mode",
+    "tooltip": "How the wallpaper edges should be handled",
+    "options": {
+      "Clamp": "clamp",
+      "Border": "border",
+      "Repeat": "repeat"
+    },
+    "queue": {
+      "type": "list",
+      "description": "Wallpaper queue",
+      "columns": [
+        {"id": "id", "title": "Wallpaper ID", "type": "string"}
+      ],
+      "default": []
+    }
   }
 }

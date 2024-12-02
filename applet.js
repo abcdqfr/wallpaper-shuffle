@@ -17,6 +17,14 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
             global.log('Settings instance created successfully');
             
+            global.log('Initial wallpaperDir value:', this.wallpaperDir);
+            
+            if (!this.wallpaperDir) {
+                global.logError('No wallpaper directory configured');
+                // Maybe set a default?
+                // this.wallpaperDir = GLib.get_home_dir() + '/Pictures';
+            }
+            
             this._bindSettings();
         } catch (e) {
             global.logError('Failed to initialize applet settings: ' + e.message);
@@ -27,6 +35,9 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
+        
+        this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} queue`);
+        
         this.menu.addMenuItem(new Applet.MenuItem("Toggle Timer", null, () => this._toggleTimer()));
         ["queue", "next", "prev", "random", "exit"].forEach(cmd => this._addMenuItem(cmd));
         this.actor.connect("button-press-event", () => this.menu.toggle());
@@ -35,10 +46,14 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         const properties = [
             "shuffleInterval",
             "volumeLevel",
+            "muteAudio",
             "screenRoot",
             "linuxWpePath",
             "wallpaperDir",
-            "disableMouse"
+            "disableMouse",
+            "currentIndex",
+            "scalingMode",
+            "clampingMode"
         ];
 
         for (const prop of properties) {
@@ -47,64 +62,69 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                     Settings.BindingDirection.IN,
                     prop,
                     prop,
-                    () => this._on_settings_changed(),
+                    () => {
+                        global.log(`Setting ${prop} changed to: ${this[prop]}`);
+                        this._applySettings();
+                    },
                     null
                 );
-                global.log(`${prop} binding successful`);
             } catch (e) {
                 global.logError(`Failed to bind ${prop}: ${e.message}`);
             }
         }
     }
     _runCommandAsync(command) {
-        let proc = Gio.Subprocess.new(
-            ['/bin/bash', '-c', command],
-            Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
-        );
-        proc.communicate_async(null, null, (proc, res) => {
-            try {
-                let [ok, stdout, stderr] = proc.communicate_finish(res);
-                if (ok) {
-                    global.log(`Command output: ${stdout.toString().trim()}`);
-                } else {
-                    global.logError(`Command error: ${stderr.toString().trim()}`);
-                }
-            } catch (err) {
-                global.logError(`Command failed: ${err}`);
+        try {
+            let proc = Gio.Subprocess.new(
+                ['/bin/bash', '-c', command],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+            );
+            
+            if (!proc) {
+                global.logError(`Failed to create subprocess for command: ${command}`);
+                return;
             }
-        });
+
+            proc.communicate_async(null, null, (proc, res) => {
+                try {
+                    let [ok, stdout, stderr] = proc.communicate_finish(res);
+                    if (!ok) {
+                        global.logError(`Command failed: ${stderr.toString().trim()}`);
+                        return;
+                    }
+                    
+                    let output = stdout.toString().trim();
+                    if (output) {
+                        global.log(`Command output: ${output}`);
+                    }
+                } catch (err) {
+                    global.logError(`Command execution failed: ${err.message}`);
+                }
+            });
+        } catch (err) {
+            global.logError(`Failed to run command: ${err.message}`);
+        }
     }
     _addMenuItem(command) {
         this.menu.addMenuItem(new Applet.MenuItem(command.charAt(0).toUpperCase() + command.slice(1), null, () => this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} ${command}`)));
     }
     _updateStatus() {
-        const schemaPath = `${GLib.get_home_dir()}/.local/share/cinnamon/applets/wallpaper-shuffle/settings-schema.json`;
-        const file = Gio.file_new_for_path(schemaPath);
+        const settingsPath = `${GLib.get_home_dir()}/.cinnamon/configs/wallpaper-shuffle@abcdqfr/settings.json`;
+        const file = Gio.file_new_for_path(settingsPath);
         
         file.load_contents_async(null, (aFile, aResponse) => {
-            let success, contents, tag;
-
             try {
-                [success, contents, tag] = aFile.load_contents_finish(aResponse);
-            } catch (err) {
-                global.logError("Failed to read settings-schema.json: " + err.message);
-                return;
-            }
-
-            if (!success) {
-                global.logError("Error reading settings-schema.json");
-                return;
-            }
-
-            try {
+                let [success, contents, tag] = aFile.load_contents_finish(aResponse);
+                if (!success) {
+                    global.logError("Error reading settings.json");
+                    return;
+                }
+                
                 const settings = JSON.parse(contents.toString());
-                this.settings.setValue("currentWallpaper", settings["currentWallpaper"].default || "Unknown");
-                this.settings.setValue("previousWallpaper", settings["previousWallpaper"].default || "None");
-                this.settings.setValue("queueLength", settings["queueLength"].default.toString() || "0");
-                this.settings.setValue("currentIndex", settings["currentIndex"].default.toString() || "0");
-                this.settings.setValue("shuffleStatus", settings["shuffleStatus"].default || "Stopped");
+                this.set_applet_tooltip(`Current: ${settings.currentWallpaper.value}`);
+                
             } catch (err) {
-                global.logError("Failed to parse settings-schema.json: " + err.message);
+                global.logError("Failed to parse settings.json: " + err.message);
             }
         });
     }
@@ -112,35 +132,99 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         this.timer ? this._stopTimer() : this._startTimer();
     }
     _startTimer() {
+        if (this.timer) {
+            this._stopTimer(); // Clean up existing timer first
+        }
+        
         this.remaining = this.shuffleInterval * 60;
         this.timer = Mainloop.timeout_add_seconds(1, () => {
-            if (this.remaining > 0) {
-                this.remaining--;
-                this._updateTooltip();
-            } else {
-                this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} next`);
-                this.remaining = this.shuffleInterval * 60;
-                this._updateTooltip("Timer reset");
+            try {
+                if (this.remaining > 0) {
+                    this.remaining--;
+                    this._updateTooltip();
+                    return true; // Continue timer
+                } else {
+                    this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} next`);
+                    this.remaining = this.shuffleInterval * 60;
+                    this._updateTooltip("Timer reset");
+                    return true; // Continue timer
+                }
+            } catch (e) {
+                global.logError('Timer error:', e.message);
+                this._stopTimer(); // Clean up on error
+                return false; // Stop timer
             }
-            return true;
         });
+        
         this._updateTooltip("Timer started");
     }
     _stopTimer() {
         if (this.timer) {
             Mainloop.source_remove(this.timer);
             this.timer = null;
+            this.remaining = 0;
         }
         this._updateTooltip("Timer stopped");
     }
     _applySettings() {
-        let command = `${WALLPAPER_MANAGER_PATH} `;
-        command += `--volume ${this.volumeLevel} `;
-        command += `--screenRoot ${this.screenRoot} `;
-        if (this.disableMouse) {
-            command += `--disableMouse `;
+        try {
+            // Build settings object with current values
+            const settings = {
+                volumeLevel: parseInt(this.volumeLevel),
+                muteAudio: this.muteAudio,
+                screenRoot: this.screenRoot,
+                disableMouse: this.disableMouse,
+                scalingMode: this.scalingMode,
+                clampingMode: this.clampingMode,
+                wallpaperDir: this.wallpaperDir
+            };
+
+            // Log current settings state
+            global.log('Applying settings:', JSON.stringify(settings));
+
+            // Apply each setting individually, only if it has changed
+            const currentSettings = this._getCurrentSettings();
+            Object.entries(settings).forEach(([setting, value]) => {
+                if (value !== undefined && value !== currentSettings[setting]) {
+                    // For volume, ensure it's a number between 0-100
+                    if (setting === 'volumeLevel') {
+                        value = Math.max(0, Math.min(100, parseInt(value) || 0));
+                    }
+                    this._runCommandAsync(
+                        `${WALLPAPER_MANAGER_PATH} settings ${setting} "${value}"`
+                    );
+                    global.log(`Updated ${setting} to ${value}`);
+                }
+            });
+
+            // Update status after applying settings
+            this._updateStatus();
+        } catch (e) {
+            global.logError('Failed to apply settings:', e.message);
         }
-        this._runCommandAsync(command);
+    }
+    _getCurrentSettings() {
+        try {
+            const settingsPath = `${GLib.get_home_dir()}/.cinnamon/configs/wallpaper-shuffle@abcdqfr/settings.json`;
+            const [success, contents] = GLib.file_get_contents(settingsPath);
+            if (!success) {
+                global.logError("Failed to read current settings");
+                return {};
+            }
+            const settings = JSON.parse(contents.toString());
+            return {
+                volumeLevel: settings.volumeLevel?.value,
+                muteAudio: settings.muteAudio?.value,
+                screenRoot: settings.screenRoot?.value,
+                disableMouse: settings.disableMouse?.value,
+                scalingMode: settings.scalingMode?.value,
+                clampingMode: settings.clampingMode?.value,
+                wallpaperDir: settings.wallpaperDir?.value
+            };
+        } catch (e) {
+            global.logError('Failed to get current settings:', e.message);
+            return {};
+        }
     }
     _updateTooltip(extra = "") {
         const formatTime = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
@@ -159,10 +243,11 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         this.set_applet_icon_symbolic_name("preferences-desktop-wallpaper");
     }
     on_applet_removed_from_panel() {
-        if (this.timer) {
-            this._stop_timer();
+        this._stopTimer(); // Ensure timer is cleaned up
+        if (this.settings) {
+            this.settings.finalize();
         }
-        this.settings.finalize();
+        this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} exit`);
     }
     on_applet_config_changed() {
         global.log('Wallpaper Shuffle: Config changed called');
@@ -177,6 +262,8 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         global.log(`Current shuffle interval: ${this.shuffleInterval}`);
         global.log(`Current volume level: ${this.volumeLevel}`);
         global.log(`Current screen: ${this.screenRoot}`);
+        global.log(`Current scaling mode: ${this.scalingMode}`);
+        global.log(`Current clamping mode: ${this.clampingMode}`);
         
         this._applySettings();
         this._updateTooltip();
