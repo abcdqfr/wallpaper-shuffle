@@ -4,15 +4,12 @@ const Mainloop = imports.mainloop;
 const Settings = imports.ui.settings;
 const PopupMenu = imports.ui.popupMenu;
 const WALLPAPER_MANAGER_PATH = `${__dirname}/wallpaper-manager.sh`;
-
 class WallpaperShuffleApplet extends Applet.TextIconApplet {
     constructor(metadata, orientation, panelHeight, instanceId) {
         global.log('WallpaperShuffleApplet: Constructor started');
         global.log(`metadata: ${JSON.stringify(metadata)}`);
         global.log(`instanceId: ${instanceId}`);
-        
         super(orientation, panelHeight, instanceId);
-        
         try {
             this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
             global.log('Settings instance created successfully');
@@ -27,17 +24,13 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         } catch (e) {
             global.logError('Failed to initialize applet settings: ' + e.message);
         }
-        
         this.set_applet_icon_name("preferences-desktop-wallpaper");
         this.set_applet_tooltip("Wallpaper Shuffle Controls");
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
-        
-        this._runCommandAsync(`${WALLPAPER_MANAGER_PATH} queue`);
-        
         this.menu.addMenuItem(new Applet.MenuItem("Toggle Timer", null, () => this._toggleTimer()));
-        ["queue", "next", "prev", "random", "exit"].forEach(cmd => this._addMenuItem(cmd));
+        ["next", "prev", "random", "exit"].forEach(cmd => this._addMenuItem(cmd));
         this.actor.connect("button-press-event", () => this.menu.toggle());
     }
     _bindSettings() {
@@ -53,7 +46,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
             "scalingMode",
             "clampingMode"
         ];
-
         for (const prop of properties) {
             try {
                 this.settings.bindProperty(
@@ -166,7 +158,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
     }
     _applySettings() {
         try {
-            // Build settings object with current values
             const settings = {
                 volumeLevel: parseInt(this.volumeLevel),
                 muteAudio: this.muteAudio,
@@ -176,15 +167,10 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                 clampingMode: this.clampingMode,
                 wallpaperDir: this.wallpaperDir
             };
-
-            // Log current settings state
             global.log('Applying settings:', JSON.stringify(settings));
-
-            // Apply each setting individually, only if it has changed
             const currentSettings = this._getCurrentSettings();
             Object.entries(settings).forEach(([setting, value]) => {
                 if (value !== undefined && value !== currentSettings[setting]) {
-                    // For volume, ensure it's a number between 0-100
                     if (setting === 'volumeLevel') {
                         value = Math.max(0, Math.min(100, parseInt(value) || 0));
                     }
@@ -194,8 +180,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                     global.log(`Updated ${setting} to ${value}`);
                 }
             });
-
-            // Update status after applying settings
             this._updateStatus();
         } catch (e) {
             global.logError('Failed to apply settings:', e.message);
@@ -262,7 +246,6 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         global.log(`Current screen: ${this.screenRoot}`);
         global.log(`Current scaling mode: ${this.scalingMode}`);
         global.log(`Current clamping mode: ${this.clampingMode}`);
-        
         this._applySettings();
         this._updateTooltip();
     }

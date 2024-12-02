@@ -65,12 +65,24 @@ build_queue() {
     [ -n "$wallpapers" ] && set_setting "queue" "$wallpapers"
 }
 
+check_queue() {
+    local dir=$(expand_path "$(get_setting "wallpaperDir" "$HOME/.steam/debian-installation/steamapps/workshop/content/431960")")
+    local dir_count=$(find "$dir" -mindepth 1 -maxdepth 1 -type d | wc -l)
+    local queue_count=$(get_setting "queue" "[]" | jq '. | length')
+    
+    # Rebuild if queue is empty or counts don't match
+    [ "$queue_count" = "0" ] || [ "$dir_count" != "$queue_count" ] && build_queue "$dir"
+}
+
 load_wallpaper() {
     LINUX_WPE_PATH=$(expand_path "$(get_setting "linuxWpePath" "$HOME/linux-wallpaperengine/build")")
     [ ! -d "$LINUX_WPE_PATH" ] && return 1
     cd "$LINUX_WPE_PATH" || return 1
     
     kill_wpe
+    
+    # Check queue before loading
+    check_queue
     
     INDEX=$(get_setting "currentIndex" "0")
     QUEUE=$(get_setting "queue" "[]")
@@ -116,6 +128,7 @@ case "$1" in
     load) load_wallpaper ;;
     queue) build_queue "$(expand_path "$(get_setting "wallpaperDir" "$HOME/.steam/debian-installation/steamapps/workshop/content/431960")")" ;;
     next|prev)
+        check_queue  # Check queue before navigation
         INDEX=$(get_setting "currentIndex" "0")
         QUEUE=$(get_setting "queue" "[]")
         INDEX=${INDEX:-0}
@@ -133,7 +146,12 @@ case "$1" in
         
         set_setting "currentIndex" "$NEW_INDEX"
         load_wallpaper ;;
-    random) TOTAL=$(get_setting "queue" | jq '. | length') && [ "$TOTAL" -gt 0 ] && set_setting "currentIndex" "$((RANDOM % TOTAL))" && load_wallpaper ;;
+    random) 
+        check_queue  # Check queue before random selection
+        TOTAL=$(get_setting "queue" | jq '. | length') && \
+        [ "$TOTAL" -gt 0 ] && \
+        set_setting "currentIndex" "$((RANDOM % TOTAL))" && \
+        load_wallpaper ;;
     settings)
         kill_wpe
         case "$2" in
