@@ -6,7 +6,7 @@
   "generalSettings": {
     "title": "General Settings",
     "type": "header",
-    "description": "Basic configuration options"
+    "description": "Basic Configuration"
   },
   "linuxWpePath": {
     "type": "filechooser",
@@ -18,29 +18,14 @@
   "wallpaperDir": {
     "type": "filechooser",
     "default": "~/.steam/debian-installation/steamapps/workshop/content/431960",
-    "description": "Wallpaper directory",
-    "select-dir": true
+    "description": "Wallpaper Directory",
+    "tooltip": "Directory containing wallpaper engine backgrounds",
+    "select-dir": true,
+    "value": "~/.steam/debian-installation/steamapps/workshop/content/431960"
   },
-  "logFile": {
-    "type": "filechooser",
-    "default": "/var/log/wallpaper-shuffle.log",
-    "description": "Log file location",
-    "select-dir": true
-  },
-  "screenRoot": {
-    "type": "entry",
-    "default": "DisplayPort-2",
-    "description": "Screen Display Output",
-    "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)"
-  },
-  "shuffleInterval": {
-  "type": "spinbutton",
-  "default": 10,
-  "min": 1,
-  "max": 1440,
-  "step": 1,
-  "units": "minutes",
-  "description": "Shuffle interval"
+  "audioSettings": {
+    "type": "header",
+    "description": "Audio Settings"
   },
   "volumeLevel": {
     "type": "scale",
@@ -48,52 +33,39 @@
     "min": 0,
     "max": 100,
     "step": 1,
-    "description": "Volume level (0-100)"
+    "description": "Volume Level",
+    "tooltip": "Sets the volume for all sounds (0-100)",
+    "value": 10
   },
-
   "muteAudio": {
     "type": "switch",
     "default": false,
-    "description": "Mute audio"
+    "description": "Mute Audio",
+    "tooltip": "Mutes all sounds the wallpaper might produce",
+    "value": "false"
   },
-  "disableMouse": {
+  "noAutomute": {
     "type": "switch",
     "default": false,
-    "description": "Disable mouse interaction"
+    "description": "Disable Auto-mute",
+    "tooltip": "Prevents auto-muting when other apps play sound"
   },
-  "currentStatus": {
-    "type": "header",
-    "description": "Current Status"
-  },
-  "currentIndex": {
-    "type": "generic",
-    "default": 246,
-    "description": "Current index",
-    "value": 330
-  },
-  "currentWallpaper": {
-    "type": "generic",
-    "default": "",
-    "description": "Current wallpaper"
-  },
-  "previousWallpaper": {
-    "type": "generic",
-    "default": "",
-    "description": "Previous wallpaper"
-  },
-  "queueLength": {
-    "type": "generic",
-    "default": 396,
-    "description": "Queue length"
-  },
-  "shuffleStatus": {
-    "type": "generic",
-    "default": "Stopped",
-    "description": "Shuffle status"
+  "noAudioProcessing": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable Audio Processing",
+    "tooltip": "Disables audio processing for backgrounds"
   },
   "displaySettings": {
     "type": "header",
     "description": "Display Settings"
+  },
+  "screenRoot": {
+    "type": "entry",
+    "default": "",
+    "description": "Screen Display Output",
+    "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)",
+    "value": "DisplayPort-2"
   },
   "scalingMode": {
     "type": "combobox",
@@ -105,7 +77,8 @@
       "Stretch": "stretch",
       "Fit": "fit",
       "Fill": "fill"
-    }
+    },
+    "value": "default"
   },
   "clampingMode": {
     "type": "combobox",
@@ -116,19 +89,12 @@
       "Clamp": "clamp",
       "Border": "border",
       "Repeat": "repeat"
-    }
+    },
+    "value": "clamp"
   },
-  "queue": {
-    "type": "list",
-    "description": "Wallpaper queue",
-    "columns": [
-      {"id": "id", "title": "Wallpaper ID", "type": "string"}
-    ],
-    "default": []
-  },
-  "optionalSettings": {
+  "performanceSettings": {
     "type": "header",
-    "description": "Optional Settings"
+    "description": "Performance Settings"
   },
   "maxFps": {
     "type": "spinbutton",
@@ -139,35 +105,81 @@
     "description": "Maximum FPS",
     "tooltip": "Limit FPS to reduce battery usage"
   },
-  "noAutomute": {
-    "type": "switch",
-    "default": false,
-    "description": "Disable auto-mute",
-    "tooltip": "Prevent wallpaper from auto-muting when other apps play sound"
-  },
-  "noAudioProcessing": {
-    "type": "switch",
-    "default": false,
-    "description": "Disable audio processing",
-    "tooltip": "Disable audio processing for backgrounds"
-  },
   "noFullscreenPause": {
     "type": "switch",
     "default": false,
-    "description": "Disable fullscreen pause",
-    "tooltip": "Prevent wallpaper from pausing when apps go fullscreen"
+    "description": "Disable Fullscreen Pause",
+    "tooltip": "Prevents pausing when apps go fullscreen"
+  },
+  "disableMouse": {
+    "type": "switch",
+    "default": false,
+    "description": "Disable Mouse",
+    "tooltip": "Disables mouse interactions with the wallpaper",
+    "value": "true"
+  },
+  "advancedSettings": {
+    "type": "header",
+    "description": "Advanced Settings"
   },
   "windowMode": {
     "type": "entry",
     "default": "",
-    "description": "Window geometry (XxYxWxH)",
+    "description": "Window Mode Geometry",
     "tooltip": "Run in window mode with specific geometry (e.g., 0x0x1920x1080)"
   },
   "assetsDir": {
     "type": "filechooser",
     "default": "",
-    "description": "Custom assets directory",
-    "select-dir": true,
-    "tooltip": "Custom directory for wallpaper assets"
+    "description": "Custom Assets Directory",
+    "tooltip": "Custom directory for wallpaper assets",
+    "select-dir": true
+  },
+  "shuffleSettings": {
+    "type": "header",
+    "description": "Shuffle Settings"
+  },
+  "shuffleInterval": {
+    "type": "spinbutton",
+    "default": 10,
+    "min": 1,
+    "max": 1440,
+    "step": 1,
+    "units": "minutes",
+    "description": "Shuffle Interval"
+  },
+  "queue": {
+    "type": "list",
+    "description": "Wallpaper Queue",
+    "columns": [
+      {
+        "id": "path",
+        "title": "Wallpaper Path",
+        "type": "string"
+      }
+    ],
+    "default": [],
+    "value": "[]"
+  },
+  "currentIndex": {
+    "type": "spinbutton",
+    "default": 0,
+    "min": 0,
+    "max": 99999,
+    "step": 1,
+    "description": "Current Queue Position",
+    "value": "107"
+  },
+  "currentWallpaper": {
+    "type": "entry",
+    "default": "",
+    "description": "Current Wallpaper Path",
+    "value": ""
+  },
+  "previousWallpaper": {
+    "type": "entry",
+    "default": "",
+    "description": "Previous Wallpaper Path",
+    "value": ""
   }
 }
