@@ -126,9 +126,9 @@
     ],
     "default": []
   },
-  "performanceSettings": {
+  "optionalSettings": {
     "type": "header",
-    "description": "Performance Settings"
+    "description": "Optional Settings"
   },
   "maxFps": {
     "type": "spinbutton",
