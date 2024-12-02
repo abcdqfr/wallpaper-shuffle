@@ -34,7 +34,7 @@ SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle@abcdqfr/set
 get_setting() {
     [ -f "$SETTINGS_FILE" ] && value=$(jq -r ".$1.value // .$1.default // \"$2\"" "$SETTINGS_FILE") || value="$2"
     if [ "$1" = "queue" ]; then
-        echo "$value" | jq -c 'if type == "string" then fromjson else . end | map(tonumber)' 2>/dev/null || echo "[]"
+        echo "$value" | jq -c 'if type == "string" then fromjson else . end | map(tostring)' 2>/dev/null || echo "[]"
     else
         [ "$value" = "null" ] && echo "$2" || echo "$value"
     fi
@@ -44,7 +44,8 @@ set_setting() {
     [ ! -f "$SETTINGS_FILE" ] && echo "{}" > "$SETTINGS_FILE"
     local temp_file=$(mktemp)
     jq --arg key "$1" --arg value "$2" \
-        'if has($key) then .[$key].value = $value
+        'if has($key) then .[$key].value = $value 
+         elif .[$key].type then .[$key].value = $value
          else .[$key] = {"type": "generic", "value": $value} end' "$SETTINGS_FILE" > "$temp_file" && \
     mv "$temp_file" "$SETTINGS_FILE"
 }
@@ -52,7 +53,7 @@ set_setting() {
 build_queue() {
     [ ! -d "$1" ] && return 1
     local wallpapers=$(find "$1" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | \
-                      jq -nRc '[inputs | tonumber]')
+                      jq -nRc '[inputs | tostring]')
     [ "$wallpapers" = "[]" ] && return 1
     set_setting "queue" "$wallpapers"
     set_setting "currentIndex" "0"
@@ -74,7 +75,7 @@ load_wallpaper() {
     [ "$(get_setting "disableMouse" "false")" = "true" ] && CMD+=" --disable-mouse"
     
     VOL=$(get_setting "volumeLevel" "50")
-    if [ "$(get_setting "muteAudio" "false")" = "true" ] || [ "$VOL" = "0" ]; then
+    if [ "$(get_setting "muteAudio" "false")" = "true" ]; then
         CMD+=" --silent"
     elif [ -n "$VOL" ]; then
         VOL=$(printf "%.0f" "$VOL")

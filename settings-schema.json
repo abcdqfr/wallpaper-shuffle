@@ -4,7 +4,6 @@
     "description": "Wallpaper Shuffle Settings"
   },
   "generalSettings": {
-    "title": "General Settings",
     "type": "header",
     "description": "Basic Configuration"
   },
@@ -13,7 +12,8 @@
     "default": "~/linux-wallpaperengine/build",
     "description": "Linux Wallpaper Engine Path",
     "tooltip": "Path to the linux-wallpaperengine build directory",
-    "select-dir": true
+    "select-dir": true,
+    "value": "~/linux-wallpaperengine/build"
   },
   "wallpaperDir": {
     "type": "filechooser",
@@ -35,26 +35,28 @@
     "step": 1,
     "description": "Volume Level",
     "tooltip": "Sets the volume for all sounds (0-100)",
-    "value": 10
+    "value": 100
   },
   "muteAudio": {
     "type": "switch",
     "default": false,
     "description": "Mute Audio",
     "tooltip": "Mutes all sounds the wallpaper might produce",
-    "value": "false"
+    "value": false
   },
   "noAutomute": {
     "type": "switch",
     "default": false,
     "description": "Disable Auto-mute",
-    "tooltip": "Prevents auto-muting when other apps play sound"
+    "tooltip": "Prevents auto-muting when other apps play sound",
+    "value": false
   },
   "noAudioProcessing": {
     "type": "switch",
     "default": false,
     "description": "Disable Audio Processing",
-    "tooltip": "Disables audio processing for backgrounds"
+    "tooltip": "Disables audio processing for backgrounds",
+    "value": false
   },
   "displaySettings": {
     "type": "header",
@@ -62,7 +64,7 @@
   },
   "screenRoot": {
     "type": "entry",
-    "default": "",
+    "default": "DisplayPort-2",
     "description": "Screen Display Output",
     "tooltip": "The display output to show wallpapers on (e.g., DisplayPort-2, HDMI-1)",
     "value": "DisplayPort-2"
@@ -70,6 +72,7 @@
   "scalingMode": {
     "type": "combobox",
     "default": "default",
+    "value": "default",
     "description": "Scaling Mode",
     "tooltip": "How the wallpaper should be scaled to fit the screen",
     "options": {
@@ -77,8 +80,7 @@
       "Stretch": "stretch",
       "Fit": "fit",
       "Fill": "fill"
-    },
-    "value": "default"
+    }
   },
   "clampingMode": {
     "type": "combobox",
@@ -103,37 +105,41 @@
     "max": 240,
     "step": 1,
     "description": "Maximum FPS",
-    "tooltip": "Limit FPS to reduce battery usage"
+    "tooltip": "Limit FPS to reduce battery usage",
+    "value": 60
   },
   "noFullscreenPause": {
     "type": "switch",
     "default": false,
     "description": "Disable Fullscreen Pause",
-    "tooltip": "Prevents pausing when apps go fullscreen"
+    "tooltip": "Prevents pausing when apps go fullscreen",
+    "value": false
   },
   "disableMouse": {
     "type": "switch",
     "default": false,
     "description": "Disable Mouse",
     "tooltip": "Disables mouse interactions with the wallpaper",
-    "value": "true"
+    "value": true
   },
   "advancedSettings": {
     "type": "header",
     "description": "Advanced Settings"
   },
   "windowMode": {
-    "type": "entry",
+    "type": "generic",
     "default": "",
     "description": "Window Mode Geometry",
-    "tooltip": "Run in window mode with specific geometry (e.g., 0x0x1920x1080)"
+    "tooltip": "Run in window mode with specific geometry (e.g., 0x0x1920x1080)",
+    "value": ""
   },
   "assetsDir": {
     "type": "filechooser",
     "default": "",
     "description": "Custom Assets Directory",
     "tooltip": "Custom directory for wallpaper assets",
-    "select-dir": true
+    "select-dir": true,
+    "value": ""
   },
   "shuffleSettings": {
     "type": "header",
@@ -146,40 +152,35 @@
     "max": 1440,
     "step": 1,
     "units": "minutes",
-    "description": "Shuffle Interval"
-  },
-  "queue": {
-    "type": "list",
-    "description": "Wallpaper Queue",
-    "columns": [
-      {
-        "id": "path",
-        "title": "Wallpaper Path",
-        "type": "string"
-      }
-    ],
-    "default": [],
-    "value": "[]"
+    "description": "Shuffle Interval",
+    "value": 10
   },
   "currentIndex": {
-    "type": "spinbutton",
-    "default": 0,
-    "min": 0,
-    "max": 99999,
-    "step": 1,
+    "type": "generic",
+    "default": "",
     "description": "Current Queue Position",
-    "value": "107"
+    "tooltip": "Current position in the wallpaper queue",
+    "value": "0"
   },
   "currentWallpaper": {
-    "type": "entry",
+    "type": "generic",
     "default": "",
-    "description": "Current Wallpaper Path",
+    "description": "Current Wallpaper ID",
+    "tooltip": "Steam Workshop ID of current wallpaper",
     "value": ""
   },
   "previousWallpaper": {
-    "type": "entry",
+    "type": "generic",
     "default": "",
-    "description": "Previous Wallpaper Path",
+    "description": "Previous Wallpaper ID",
+    "tooltip": "Steam Workshop ID of previous wallpaper",
+    "value": ""
+  },
+  "queue": {
+    "type": "generic",
+    "description": "Wallpaper Queue",
+    "tooltip": "List of Steam Workshop IDs in shuffle queue",
+    "default": "",
     "value": ""
   }
 }
