@@ -42,11 +42,21 @@ get_setting() {
 
 set_setting() {
     [ ! -f "$SETTINGS_FILE" ] && echo "{}" > "$SETTINGS_FILE"
+    local temp_file=$(mktemp)
+    
     jq --arg key "$1" --arg value "$2" \
-        'if has($key) then if .[$key] | type == "object" then .[$key].value = $value 
-         else .[$key] = {"type": "generic", "value": $value} end
-         else .[$key] = {"type": "generic", "value": $value} end' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" \
-    && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+        'if has($key) then
+            .[$key] = (
+                if .[$key] | type == "object" then
+                    .[$key] * {"value": $value}
+                else
+                    {"type": "generic", "value": $value}
+                end
+            )
+         else
+            .[$key] = {"type": "generic", "value": $value}
+         end' "$SETTINGS_FILE" > "$temp_file" \
+    && mv "$temp_file" "$SETTINGS_FILE"
 }
 
 build_queue() {
