@@ -72,7 +72,7 @@
   "scalingMode": {
     "type": "combobox",
     "default": "default",
-    "value": "fit",
+    "value": "default",
     "description": "Scaling Mode",
     "tooltip": "How the wallpaper should be scaled to fit the screen",
     "options": {
@@ -92,7 +92,7 @@
       "Border": "border",
       "Repeat": "repeat"
     },
-    "value": "border"
+    "value": "clamp"
   },
   "performanceSettings": {
     "type": "header",
@@ -160,7 +160,7 @@
     "default": "",
     "description": "Current Queue Position",
     "tooltip": "Current position in the wallpaper queue",
-    "value": ""
+    "value": "0"
   },
   "currentWallpaper": {
     "type": "generic",
@@ -181,6 +181,6 @@
     "description": "Wallpaper Queue",
     "tooltip": "List of Steam Workshop IDs in shuffle queue",
     "default": "",
-    "value": ""
+    "value": [] 
   }
 }

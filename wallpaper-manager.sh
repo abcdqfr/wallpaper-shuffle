@@ -34,7 +34,8 @@ SETTINGS_FILE="$HOME/.local/share/cinnamon/applets/wallpaper-shuffle@abcdqfr/set
 get_setting() {
     [ -f "$SETTINGS_FILE" ] && value=$(jq -r ".$1.value // .$1.default // \"$2\"" "$SETTINGS_FILE") || value="$2"
     if [ "$1" = "queue" ]; then
-        echo "$value" | jq -c 'if type == "string" then fromjson else . end | map(tostring)' 2>/dev/null || echo "[]"
+        # Convert comma-separated list to JSON array
+        echo "[\"${value//,/\",\"}\"]"
     else
         [ "$value" = "null" ] && echo "$2" || echo "$value"
     fi
@@ -53,17 +54,17 @@ set_setting() {
             end
          else
             .[$key] = {"type": "generic", "value": $value}
-         end' "$SETTINGS_FILE" > "$temp_file" && \
+         end' "$SETTINGS_FILE" > "$temp_file"
+    
     mv "$temp_file" "$SETTINGS_FILE"
 }
 
 build_queue() {
     [ ! -d "$1" ] && return 1
-    local wallpapers=$(find "$1" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | \
-                      jq -nRc '[inputs | tostring]')
-    [ "$wallpapers" = "[]" ] && return 1
+    local raw_list=$(find "$1" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
+    local wallpapers=$(echo "$raw_list" | tr '\n' ',' | sed 's/,$//')
+    [ "$wallpapers" = "" ] && return 1
     set_setting "queue" "$wallpapers"
-    set_setting "currentIndex" "0"
 }
 
 load_wallpaper() {
@@ -108,7 +109,6 @@ load_wallpaper() {
     [ "$(get_setting "noAudioProcessing" "false")" = "true" ] && CMD+=" --no-audio-processing"
     [ "$(get_setting "noFullscreenPause" "false")" = "true" ] && CMD+=" --no-fullscreen-pause"
     
-    echo "DEBUG: Final command: $CMD $WALLPAPER" >&2
     eval "$CMD $WALLPAPER" &
     
     PREV_WALLPAPER=$(get_setting "currentWallpaper" "")
