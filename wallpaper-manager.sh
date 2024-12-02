@@ -43,10 +43,17 @@ get_setting() {
 set_setting() {
     [ ! -f "$SETTINGS_FILE" ] && echo "{}" > "$SETTINGS_FILE"
     local temp_file=$(mktemp)
+    
     jq --arg key "$1" --arg value "$2" \
-        'if has($key) then .[$key].value = $value 
-         elif .[$key].type then .[$key].value = $value
-         else .[$key] = {"type": "generic", "value": $value} end' "$SETTINGS_FILE" > "$temp_file" && \
+        'if has($key) then
+            if .[$key] | type == "object" then
+                .[$key].value = $value
+            else
+                .[$key] = {"type": "generic", "value": $value}
+            end
+         else
+            .[$key] = {"type": "generic", "value": $value}
+         end' "$SETTINGS_FILE" > "$temp_file" && \
     mv "$temp_file" "$SETTINGS_FILE"
 }
 
@@ -144,9 +151,14 @@ case "$1" in
                 set_setting "maxFps" "$3" && load_wallpaper ;;
             muteAudio|disableMouse|noAutomute|noAudioProcessing|noFullscreenPause)
                 VALUE=$(echo "$3" | tr '[:upper:]' '[:lower:]')
-                [ "$VALUE" = "true" ] && BOOL="true" || BOOL="false"
+                [ "$VALUE" = "true" ] || [ "$VALUE" = "1" ] && BOOL="true" || BOOL="false"
                 set_setting "$2" "$BOOL" && load_wallpaper ;;
-            *) set_setting "$2" "$3" && load_wallpaper ;;
+            scalingMode)
+                [[ "$3" =~ ^(default|stretch|fit|fill)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
+            clampingMode)
+                [[ "$3" =~ ^(clamp|border|repeat)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
+            *) 
+                [ -n "$3" ] && set_setting "$2" "$3" && load_wallpaper ;;
         esac ;;
     exit) kill_wpe; cinnamon --replace & ;;
     help|--help|-h) help_settings ;;

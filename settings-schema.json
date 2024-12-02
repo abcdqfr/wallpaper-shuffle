@@ -33,29 +33,29 @@
     "min": 0,
     "max": 100,
     "step": 1,
-    "description": "Volume Level",
+    "description": "Volume Level (WIP)",
     "tooltip": "Sets the volume for all sounds (0-100)",
-    "value": 100
+    "value": "50"
   },
   "muteAudio": {
     "type": "switch",
     "default": false,
     "description": "Mute Audio",
     "tooltip": "Mutes all sounds the wallpaper might produce",
-    "value": false
+    "value": "true"
   },
   "noAutomute": {
     "type": "switch",
     "default": false,
-    "description": "Disable Auto-mute",
-    "tooltip": "Prevents auto-muting when other apps play sound",
+    "description": "Disable Auto-mute (WIP)",
+    "tooltip": "Prevents auto-muting when other apps play sound (WIP)",
     "value": false
   },
   "noAudioProcessing": {
     "type": "switch",
     "default": false,
-    "description": "Disable Audio Processing",
-    "tooltip": "Disables audio processing for backgrounds",
+    "description": "Disable Audio Processing (WIP)",
+    "tooltip": "Disables audio processing for backgrounds (WIP)",
     "value": false
   },
   "displaySettings": {
@@ -72,7 +72,7 @@
   "scalingMode": {
     "type": "combobox",
     "default": "default",
-    "value": "default",
+    "value": "fit",
     "description": "Scaling Mode",
     "tooltip": "How the wallpaper should be scaled to fit the screen",
     "options": {
@@ -92,7 +92,7 @@
       "Border": "border",
       "Repeat": "repeat"
     },
-    "value": "clamp"
+    "value": "border"
   },
   "performanceSettings": {
     "type": "header",
@@ -120,7 +120,7 @@
     "default": false,
     "description": "Disable Mouse",
     "tooltip": "Disables mouse interactions with the wallpaper",
-    "value": true
+    "value": "true"
   },
   "advancedSettings": {
     "type": "header",
@@ -160,7 +160,7 @@
     "default": "",
     "description": "Current Queue Position",
     "tooltip": "Current position in the wallpaper queue",
-    "value": "0"
+    "value": ""
   },
   "currentWallpaper": {
     "type": "generic",
