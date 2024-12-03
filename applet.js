@@ -175,14 +175,14 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                         value = Math.max(0, Math.min(100, parseInt(value) || 0));
                     }
                     this._runCommandAsync(
-                        `${WALLPAPER_MANAGER_PATH} settings ${setting} "${value}"`
+                        `${WALLPAPER_MANAGER_PATH} settings ${setting} ${value}`
                     );
                     global.log(`Updated ${setting} to ${value}`);
                 }
             });
             this._updateStatus();
         } catch (e) {
-            global.logError('Failed to apply settings:', e.message);
+            global.logError(`Failed to apply settings: ${e.message}`);
         }
     }
     _getCurrentSettings() {

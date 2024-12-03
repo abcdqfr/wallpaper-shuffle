@@ -14,18 +14,68 @@ expand_path() { echo "${1/#\~/$HOME}"; }
 
 help_settings() {
     cat << 'EOF'
-Possible arguments:
-    volumeLevel    0-100 (Audio volume percentage)
-    muteAudio      true/false (Mute wallpaper audio)
-    disableMouse   true/false (Disable mouse interaction)
-    scalingMode    default/stretch/fit/fill (How wallpaper scales to screen)
-    clampingMode   clamp/border/repeat (How wallpaper edges are handled)
-    maxFps         1-240 (Limit FPS to reduce battery usage)
-    noAutomute     true/false (Disable auto-muting when other apps play sound)
+Usage: ./wallpaper-manager.sh <command> [options]
+
+Basic Commands:
+    queue               Build/rebuild wallpaper queue from wallpaperDir
+    next               Switch to next wallpaper in queue
+    prev               Switch to previous wallpaper in queue
+    random             Switch to random wallpaper from queue
+    exit               Kill wallpaper engine and restore Cinnamon
+
+Load Command:
+    load               Load current wallpaper from queue
+    load <id>          Load specific wallpaper by ID
+
+Settings Command:
+    settings <key> <value>    Change a setting
+
+Available Settings:
+    Path Settings:
+        wallpaperDir         Path to directory containing wallpapers
+        linuxWpePath         Path to linux-wallpaperengine build
+        screenRoot           Display output name for wallpaper
+
+    Display Settings:
+        scalingMode          default | stretch | fit | fill
+        clampingMode         clamp | border | repeat
+        maxFps              1-240 (FPS limit)
+
+    Audio Settings:
+        volumeLevel         0-100 (volume percentage)
+        muteAudio           true | false
+        noAutomute          true | false
+        noAudioProcessing   true | false
+
+Commands:
+    queue                   Build/rebuild wallpaper queue from wallpaperDir
+    load [wallpaper_id]     Load wallpaper (current or specified ID)
+    next                    Switch to next wallpaper in queue
+    prev                    Switch to previous wallpaper in queue
+    random                  Switch to random wallpaper from queue
+    exit                    Kill wallpaper engine and restore Cinnamon
+    settings <key> <value>  Change a setting
+
+Settings:
+    wallpaperDir    path    (Directory containing wallpapers)
+    linuxWpePath    path    (Path to linux-wallpaperengine build)
+    screenRoot      name    (Display output for wallpaper)
+    volumeLevel     0-100   (Audio volume percentage)
+    muteAudio       true/false (Mute wallpaper audio)
+    disableMouse    true/false (Disable mouse interaction)
+    scalingMode     default/stretch/fit/fill (How wallpaper scales)
+    clampingMode    clamp/border/repeat (Edge handling)
+    maxFps          1-240   (FPS limit for battery saving)
+    noAutomute      true/false (Disable auto-muting)
     noAudioProcessing true/false (Disable audio processing)
-    noFullscreenPause true/false (Prevent pausing when apps go fullscreen)
-    windowMode     XxYxWxH (Run in window mode with specific geometry)
-    assetsDir      path (Custom assets directory)
+    noFullscreenPause true/false (Prevent fullscreen pause)
+    currentIndex    number  (Current position in queue)
+    currentWallpaper id    (Current wallpaper ID)
+
+Examples:
+    ./wallpaper-manager.sh load 1234567890
+    ./wallpaper-manager.sh settings volumeLevel 50
+    ./wallpaper-manager.sh next
 EOF
 }
 
@@ -164,5 +214,10 @@ case "$1" in
         esac ;;
     exit) kill_wpe; cinnamon --replace & ;;
     help|--help|-h) help_settings ;;
+    load-id)
+        kill_wpe  # Kill existing wallpaper first
+        set_setting "currentWallpaper" "$2"
+        load_wallpaper
+        ;;
     *) echo "Usage: $0 {queue|load|next|prev|random|exit|settings|help}" ;;
 esac
