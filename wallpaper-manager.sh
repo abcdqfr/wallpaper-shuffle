@@ -93,20 +93,27 @@ get_setting() {
 set_setting() {
     [ ! -f "$SETTINGS_FILE" ] && echo "{}" > "$SETTINGS_FILE"
     local temp_file=$(mktemp)
+    local numeric_keys='["volumeLevel", "maxFps", "shuffleInterval"]'
+    local value_convert='if ($key | IN($numeric_keys[])) then (try ($value | tonumber) catch $value) else $value end'
     
-    jq --arg key "$1" --arg value "$2" \
+    if jq --arg key "$1" --arg value "$2" \
+        --argjson numeric_keys "$numeric_keys" \
         'if has($key) then
             .[$key] = (
                 if .[$key] | type == "object" then
-                    .[$key] * {"value": $value}
+                    .[$key] * {"value": ('"$value_convert"')}
                 else
-                    {"type": "generic", "value": $value}
+                    {"type": "generic", "value": ('"$value_convert"')}
                 end
             )
          else
-            .[$key] = {"type": "generic", "value": $value}
-         end' "$SETTINGS_FILE" > "$temp_file" \
-    && mv "$temp_file" "$SETTINGS_FILE"
+            .[$key] = {"type": "generic", "value": ('"$value_convert"')}
+         end' "$SETTINGS_FILE" > "$temp_file"; then
+        mv "$temp_file" "$SETTINGS_FILE"
+    else
+        echo "Error: Failed to update settings for $1" >&2
+        rm "$temp_file"
+    fi
 }
 
 build_queue() {
@@ -207,6 +214,7 @@ case "$1" in
         case "$2" in
             volumeLevel) [[ "$3" =~ ^[0-9]+\.?[0-9]*$ ]] && VOL=$(printf "%.0f" "$3") && [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] && set_setting "$2" "$VOL" && load_wallpaper ;;
             maxFps) [[ "$3" =~ ^[0-9]+$ ]] && [ "$3" -ge 1 ] && [ "$3" -le 240 ] && set_setting "$2" "$3" && load_wallpaper ;;
+            shuffleInterval) [[ "$3" =~ ^[0-9]+$ ]] && [ "$3" -ge 1 ] && [ "$3" -le 1440 ] && set_setting "$2" "$3" ;;
             muteAudio|disableMouse|noAutomute|noAudioProcessing|noFullscreenPause) set_setting "$2" "$(echo "$3" | tr '[:upper:]' '[:lower:]' | grep -E '^(true|1)$' >/dev/null && echo true || echo false)" && load_wallpaper ;;
             scalingMode) [[ "$3" =~ ^(default|stretch|fit|fill)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;
             clampingMode) [[ "$3" =~ ^(clamp|border|repeat)$ ]] && set_setting "$2" "$3" && load_wallpaper ;;

@@ -35,7 +35,7 @@
     "step": 1,
     "description": "Volume Level (WIP)",
     "tooltip": "Sets the volume for all sounds (0-100)",
-    "value": "50"
+    "value": 100
   },
   "muteAudio": {
     "type": "switch",

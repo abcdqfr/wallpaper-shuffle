@@ -165,7 +165,9 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                 disableMouse: this.disableMouse,
                 scalingMode: this.scalingMode,
                 clampingMode: this.clampingMode,
-                wallpaperDir: this.wallpaperDir
+                wallpaperDir: this.wallpaperDir,
+                shuffleInterval: parseInt(this.shuffleInterval),
+                maxFps: parseInt(this.maxFps)
             };
             global.log('Applying settings:', JSON.stringify(settings));
             const currentSettings = this._getCurrentSettings();
@@ -173,6 +175,10 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
                 if (value !== undefined && value !== currentSettings[setting]) {
                     if (setting === 'volumeLevel') {
                         value = Math.max(0, Math.min(100, parseInt(value) || 0));
+                    } else if (setting === 'maxFps') {
+                        value = Math.max(1, Math.min(240, parseInt(value) || 60));
+                    } else if (setting === 'shuffleInterval') {
+                        value = Math.max(1, Math.min(1440, parseInt(value) || 5));
                     }
                     this._runCommandAsync(
                         `${WALLPAPER_MANAGER_PATH} settings ${setting} ${value}`
@@ -225,7 +231,7 @@ class WallpaperShuffleApplet extends Applet.TextIconApplet {
         this.set_applet_icon_symbolic_name("preferences-desktop-wallpaper");
     }
     on_applet_removed_from_panel() {
-        this._stopTimer(); // Ensure timer is cleaned up
+        this._stopTimer();
         if (this.settings) {
             this.settings.finalize();
         }
