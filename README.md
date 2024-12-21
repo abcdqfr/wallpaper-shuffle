@@ -1,3 +1,9 @@
+# ⚠️ Notice: This Repository is Obsolete
+
+This repository is no longer maintained and has been replaced by a superior version. For the latest updates and features, please visit the new repository:
+
+[linux-wallpaperengine-gtk](https://github.com/abcdqfr/linux-wallpaperengine-gtk)
+
 Wallpaper Shuffle
 
 Wallpaper Shuffle is a Cinnamon applet designed for Linux Mint Cinnamon to enhance the functionality of the 
